@@ -2,12 +2,12 @@ use rio_turtle::TurtleError;
 use rio_xml::RdfXmlError;
 use sophia_api::triple::stream::{StreamError, StreamResult};
 
+use super::_inner::errors::InnerParseError;
+use crate::syntax::Syntax;
+
 #[derive(Debug, thiserror::Error)]
-#[error(transparent)]
-enum InnerParseError {
-    TurtleError(#[from] TurtleError),
-    RdfXmlError(#[from] RdfXmlError),
-}
+#[error("Un supported syntax: {0}")]
+pub struct UnSupportedSyntaxError(pub Syntax);
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]

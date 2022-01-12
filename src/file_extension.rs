@@ -34,38 +34,42 @@ impl FileExtension {
     pub fn from_path_str(path_str: &str) -> Option<Self> {
         Self::from_path(Path::new(path_str))
     }
+
+    pub const fn from_static(v: &'static str) -> Self {
+        Self(Cow::Borrowed(v))
+    }
 }
 
-pub const HTML: FileExtension = FileExtension(Cow::Borrowed("html"));
+pub const HTML: FileExtension = FileExtension::from_static("html");
 
-pub const JSON: FileExtension = FileExtension(Cow::Borrowed("json"));
+pub const JSON: FileExtension = FileExtension::from_static("json");
 
-pub const JSONLD: FileExtension = FileExtension(Cow::Borrowed("jsonld"));
+pub const JSONLD: FileExtension = FileExtension::from_static("jsonld");
 
-pub const N3: FileExtension = FileExtension(Cow::Borrowed("n3"));
+pub const N3: FileExtension = FileExtension::from_static("n3");
 
-pub const NQ: FileExtension = FileExtension(Cow::Borrowed("nq"));
+pub const NQ: FileExtension = FileExtension::from_static("nq");
 
-pub const NQUADS: FileExtension = FileExtension(Cow::Borrowed("nquads"));
+pub const NQUADS: FileExtension = FileExtension::from_static("nquads");
 
-pub const NT: FileExtension = FileExtension(Cow::Borrowed("nt"));
+pub const NT: FileExtension = FileExtension::from_static("nt");
 
-pub const NTRIPLES: FileExtension = FileExtension(Cow::Borrowed("ttl"));
+pub const NTRIPLES: FileExtension = FileExtension::from_static("ttl");
 
-pub const OMN: FileExtension = FileExtension(Cow::Borrowed("omn"));
+pub const OMN: FileExtension = FileExtension::from_static("omn");
 
-pub const OWL: FileExtension = FileExtension(Cow::Borrowed("owl"));
+pub const OWL: FileExtension = FileExtension::from_static("owl");
 
-pub const OWX: FileExtension = FileExtension(Cow::Borrowed("owx"));
+pub const OWX: FileExtension = FileExtension::from_static("owx");
 
-pub const RDF: FileExtension = FileExtension(Cow::Borrowed("rdf"));
+pub const RDF: FileExtension = FileExtension::from_static("rdf");
 
-pub const RDFXML: FileExtension = FileExtension(Cow::Borrowed("rdfxml"));
+pub const RDFXML: FileExtension = FileExtension::from_static("rdfxml");
 
-pub const TRIG: FileExtension = FileExtension(Cow::Borrowed("trig"));
+pub const TRIG: FileExtension = FileExtension::from_static("trig");
 
-pub const TTL: FileExtension = FileExtension(Cow::Borrowed("ttl"));
+pub const TTL: FileExtension = FileExtension::from_static("ttl");
 
-pub const TURTLE: FileExtension = FileExtension(Cow::Borrowed("turtle"));
+pub const TURTLE: FileExtension = FileExtension::from_static("turtle");
 
-pub const XHTML: FileExtension = FileExtension(Cow::Borrowed("xhtml"));
+pub const XHTML: FileExtension = FileExtension::from_static("xhtml");

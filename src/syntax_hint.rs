@@ -93,9 +93,7 @@ mod tests {
 
     use super::*;
 
-    use crate::{
-        tests::TRACING, file_extension, media_type,
-    };
+    use crate::{file_extension, media_type, tests::TRACING};
 
     /// Asserts given syntax hint is unresolvable
     fn assert_unresolvable_hint(hint: SyntaxHint) {

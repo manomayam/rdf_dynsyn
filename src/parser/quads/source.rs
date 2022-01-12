@@ -1,8 +1,6 @@
 use std::{error::Error, io::BufRead};
 
 use rio_api::parser::{QuadsParser, TriplesParser};
-use rio_turtle::{NQuadsParser, NTriplesParser, TriGParser, TurtleError, TurtleParser};
-use rio_xml::{RdfXmlError, RdfXmlParser};
 use sophia_api::{
     quad::{
         self,
@@ -17,45 +15,11 @@ use sophia_api::{
     },
 };
 use sophia_rio::parser::StrictRioSource;
-use sophia_turtle::parser::nq;
 
-use crate::parser::errors::{adapt_stream_result, SomeHowParseError};
-
-pub(crate) enum InnerStatementSource<R: BufRead> {
-    FNQuads(StrictRioSource<NQuadsParser<R>, TurtleError>),
-    FTriG(StrictRioSource<TriGParser<R>, TurtleError>),
-    FNTriples(StrictRioSource<NTriplesParser<R>, TurtleError>),
-    FTurtle(StrictRioSource<TurtleParser<R>, TurtleError>),
-    FRdfXml(StrictRioSource<RdfXmlParser<R>, RdfXmlError>),
-}
-
-impl<R: BufRead> From<StrictRioSource<NQuadsParser<R>, TurtleError>> for InnerStatementSource<R> {
-    fn from(qs: StrictRioSource<NQuadsParser<R>, TurtleError>) -> Self {
-        Self::FNQuads(qs)
-    }
-}
-
-impl<R: BufRead> From<StrictRioSource<TriGParser<R>, TurtleError>> for InnerStatementSource<R> {
-    fn from(qs: StrictRioSource<TriGParser<R>, TurtleError>) -> Self {
-        Self::FTriG(qs)
-    }
-}
-impl<R: BufRead> From<StrictRioSource<NTriplesParser<R>, TurtleError>> for InnerStatementSource<R> {
-    fn from(ts: StrictRioSource<NTriplesParser<R>, TurtleError>) -> Self {
-        Self::FNTriples(ts)
-    }
-}
-impl<R: BufRead> From<StrictRioSource<TurtleParser<R>, TurtleError>> for InnerStatementSource<R> {
-    fn from(ts: StrictRioSource<TurtleParser<R>, TurtleError>) -> Self {
-        Self::FTurtle(ts)
-    }
-}
-
-impl<R: BufRead> From<StrictRioSource<RdfXmlParser<R>, RdfXmlError>> for InnerStatementSource<R> {
-    fn from(ts: StrictRioSource<RdfXmlParser<R>, RdfXmlError>) -> Self {
-        Self::FRdfXml(ts)
-    }
-}
+use crate::parser::{
+    _inner::source::InnerStatementSource,
+    errors::{adapt_stream_result, SomeHowParseError},
+};
 
 pub type TupleQuad<T> = ([T; 3], Option<T>);
 
@@ -131,13 +95,17 @@ where
     {
         match &mut self.inner_source {
             InnerStatementSource::FNQuads(qs) => Self::map_from_rio_quad_source(qs, f),
+
             InnerStatementSource::FTriG(qs) => Self::map_from_rio_quad_source(qs, f),
+
             InnerStatementSource::FNTriples(ts) => {
                 Self::map_from_rio_triple_source(ts, f, &self.triple_source_graph_iri)
             }
+
             InnerStatementSource::FTurtle(ts) => {
                 Self::map_from_rio_triple_source(ts, f, &self.triple_source_graph_iri)
             }
+
             InnerStatementSource::FRdfXml(ts) => {
                 Self::map_from_rio_triple_source(ts, f, &self.triple_source_graph_iri)
             }

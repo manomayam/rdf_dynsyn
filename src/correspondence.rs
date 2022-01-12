@@ -162,7 +162,6 @@ pub static MEDIA_TYPE_TO_SYNTAX_CORRESPONDENCE: Lazy<
     map
 });
 
-
 #[cfg(test)]
 mod tests {
     // see tests for syntax_hint module. They cover these mappings too.
