@@ -2,8 +2,8 @@ use sophia_api::{quad::Quad, triple::TripleAsQuad};
 use sophia_rio::parser::{RioSourceQuad, RioSourceTriple, RioTermWrapper};
 
 pub(crate) enum InnerUnsafeQuad {
-    Direct(RioSourceQuad<'static>),
-    Wrapped(TripleAsQuad<RioSourceTriple<'static>>),
+    RioSourceQuad(RioSourceQuad<'static>),
+    RioSourceTripleAsQuad(TripleAsQuad<RioSourceTriple<'static>>),
 }
 
 pub struct SomeHowQuad(InnerUnsafeQuad);
@@ -13,29 +13,29 @@ impl Quad for SomeHowQuad {
 
     fn s(&self) -> &Self::Term {
         match &self.0 {
-            InnerUnsafeQuad::Direct(q) => q.s(),
-            InnerUnsafeQuad::Wrapped(q) => q.s(),
+            InnerUnsafeQuad::RioSourceQuad(q) => q.s(),
+            InnerUnsafeQuad::RioSourceTripleAsQuad(q) => q.s(),
         }
     }
 
     fn p(&self) -> &Self::Term {
         match &self.0 {
-            InnerUnsafeQuad::Direct(q) => q.p(),
-            InnerUnsafeQuad::Wrapped(q) => q.p(),
+            InnerUnsafeQuad::RioSourceQuad(q) => q.p(),
+            InnerUnsafeQuad::RioSourceTripleAsQuad(q) => q.p(),
         }
     }
 
     fn o(&self) -> &Self::Term {
         match &self.0 {
-            InnerUnsafeQuad::Direct(q) => q.o(),
-            InnerUnsafeQuad::Wrapped(q) => q.o(),
+            InnerUnsafeQuad::RioSourceQuad(q) => q.o(),
+            InnerUnsafeQuad::RioSourceTripleAsQuad(q) => q.o(),
         }
     }
 
     fn g(&self) -> Option<&Self::Term> {
         match &self.0 {
-            InnerUnsafeQuad::Direct(q) => q.g(),
-            InnerUnsafeQuad::Wrapped(q) => q.g(),
+            InnerUnsafeQuad::RioSourceQuad(q) => q.g(),
+            InnerUnsafeQuad::RioSourceTripleAsQuad(q) => q.g(),
         }
     }
 }

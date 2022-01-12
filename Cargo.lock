@@ -174,6 +174,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "rdf_somehow"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "claim",
+ "env_logger",
+ "mime",
+ "once_cell",
+ "oxiri 0.2.1",
+ "rio_api",
+ "rio_turtle",
+ "rio_xml",
+ "sophia_api",
+ "sophia_inmem",
+ "sophia_rio",
+ "sophia_term",
+ "sophia_turtle",
+ "sophia_xml",
+ "test-case",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "regex"
 version = "1.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -223,30 +247,6 @@ dependencies = [
  "oxiri 0.1.1",
  "quick-xml",
  "rio_api",
-]
-
-[[package]]
-name = "somehow_rdf"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "claim",
- "env_logger",
- "mime",
- "once_cell",
- "oxiri 0.2.1",
- "rio_api",
- "rio_turtle",
- "rio_xml",
- "sophia_api",
- "sophia_inmem",
- "sophia_rio",
- "sophia_term",
- "sophia_turtle",
- "sophia_xml",
- "test-case",
- "thiserror",
- "tracing",
 ]
 
 [[package]]

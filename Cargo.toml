@@ -1,5 +1,5 @@
 [package]
-name = "somehow_rdf"
+name = "rdf_somehow"
 version = "0.1.0"
 edition = "2021"
 description = "A package to serialize/deserialize rdf documents with any supported syntax that can be specified at runtime, with out concerning oneself on resolving parsers."

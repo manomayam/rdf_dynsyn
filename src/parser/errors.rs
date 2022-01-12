@@ -4,7 +4,7 @@ use sophia_api::triple::stream::{StreamError, StreamResult};
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-enum InnerSyntaxError {
+enum InnerParseError {
     TurtleError(#[from] TurtleError),
     RdfXmlError(#[from] RdfXmlError),
 }
@@ -12,28 +12,28 @@ enum InnerSyntaxError {
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 /// An error that abstracts over other syntax parsing errors. Currently it can be constructed from [`TurtleError`](TurtleError), and [`RdfXmlError`](RdfXmlError)
-pub struct SomeSyntaxError(InnerSyntaxError);
+pub struct SomeHowParseError(InnerParseError);
 
-impl From<TurtleError> for SomeSyntaxError {
+impl From<TurtleError> for SomeHowParseError {
     fn from(e: TurtleError) -> Self {
         Self(e.into())
     }
 }
 
-impl From<RdfXmlError> for SomeSyntaxError {
+impl From<RdfXmlError> for SomeHowParseError {
     fn from(e: RdfXmlError) -> Self {
         Self(e.into())
     }
 }
 
-pub type SomeStreamError<SinkErr> = StreamError<SomeSyntaxError, SinkErr>;
+pub type SomeStreamError<SinkErr> = StreamError<SomeHowParseError, SinkErr>;
 
-/// This function adapts StreamError by marshalling it's SourceError variant from known types to `SomeHowSyntaxError` type
-pub fn adapt_stream_error<SourceErr, SinkErr>(
+/// This function adapts StreamError by marshalling it's SourceError variant from known types to [`ParseError` ]type
+pub fn adapt_quads_stream_error<SourceErr, SinkErr>(
     e: StreamError<SourceErr, SinkErr>,
 ) -> SomeStreamError<SinkErr>
 where
-    SourceErr: Into<SomeSyntaxError> + std::error::Error,
+    SourceErr: Into<SomeHowParseError> + std::error::Error,
     SinkErr: std::error::Error,
 {
     match e {
@@ -42,17 +42,17 @@ where
     }
 }
 
-pub type SomeStreamResult<T, SinkErr> = StreamResult<T, SomeSyntaxError, SinkErr>;
+pub type SomeStreamResult<T, SinkErr> = StreamResult<T, SomeHowParseError, SinkErr>;
 
 pub fn adapt_stream_result<T, SourceErr, SinkErr>(
     r: StreamResult<T, SourceErr, SinkErr>,
 ) -> SomeStreamResult<T, SinkErr>
 where
-    SourceErr: Into<SomeSyntaxError> + std::error::Error,
+    SourceErr: Into<SomeHowParseError> + std::error::Error,
     SinkErr: std::error::Error,
 {
     match r {
         Ok(v) => Ok(v),
-        Err(e) => Err(adapt_stream_error(e)),
+        Err(e) => Err(adapt_quads_stream_error(e)),
     }
 }
