@@ -9,7 +9,7 @@ use crate::syntax::Syntax;
 
 use self::source::SomeHowTripleSource;
 
-use super::{_inner::InnerParser, errors::UnSupportedSyntaxError};
+use super::{_inner::InnerParser, errors::UnKnownSyntaxError};
 
 pub mod source;
 
@@ -29,7 +29,7 @@ where
         syntax_: Syntax,
         base_iri: Option<String>,
         quad_source_virtual_default_graph_iri: Option<T>,
-    ) -> Result<Self, UnSupportedSyntaxError> {
+    ) -> Result<Self, UnKnownSyntaxError> {
         let inner_parser = InnerParser::try_new(syntax_, base_iri)?;
         Ok(Self {
             inner_parser,
@@ -49,19 +49,30 @@ where
         let tsg_iri = self.quad_source_virtual_default_graph_iri.clone();
         // TODO may be abstract over literal repetition
         match &self.inner_parser {
-            InnerParser::NQuadsParser(p) => {
-                SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri)
-            }
-            InnerParser::TriGParser(p) => SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri),
-            InnerParser::NTriplesParser(p) => {
-                SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri)
-            }
-            InnerParser::TurtleParser(p) => {
-                SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri)
-            }
-            InnerParser::RdfXmParser(p) => {
-                SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri)
-            }
+            InnerParser::NQuads(p) => SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::TriG(p) => SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::NTriples(p) => SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::Turtle(p) => SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::RdfXml(p) => SomeHowTripleSource::new_for(p.parse(data).into(), tsg_iri),
         }
+    }
+}
+
+pub struct SomeHowTripleParserFactory {}
+
+impl SomeHowTripleParserFactory {
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn try_new_parser<T>(
+        syntax_: Syntax,
+        base_iri: Option<String>,
+        quad_source_virtual_default_graph_iri: Option<T>,
+    ) -> Result<SomeHowTripleParser<T>, UnKnownSyntaxError>
+    where
+        T: TTerm + CopyTerm + Clone,
+    {
+        SomeHowTripleParser::try_new(syntax_, base_iri, quad_source_virtual_default_graph_iri)
     }
 }

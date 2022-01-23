@@ -2,9 +2,11 @@
     "cSpell.words": [
         "bufread",
         "Copiable",
+        "downcasted",
         "extn",
         "fextn",
         "Gspo",
+        "indexmap",
         "inmem",
         "jsonld",
         "Mownarc",
@@ -17,6 +19,10 @@
         "RDFA",
         "RDFXML",
         "repr",
-        "thiserror"
+        "serializers",
+        "thiserror",
+        "typemap",
+        "upcasted",
+        "vquad"
     ]
 }

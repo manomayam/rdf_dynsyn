@@ -2,6 +2,7 @@ pub mod correspondence;
 pub mod file_extension;
 pub mod media_type;
 pub mod parser;
+pub mod serializer;
 pub mod syntax;
 pub mod syntax_hint;
 

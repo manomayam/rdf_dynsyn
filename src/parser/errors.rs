@@ -7,7 +7,7 @@ use crate::syntax::Syntax;
 
 #[derive(Debug, thiserror::Error)]
 #[error("Un supported syntax: {0}")]
-pub struct UnSupportedSyntaxError(pub Syntax);
+pub struct UnKnownSyntaxError(pub Syntax);
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]

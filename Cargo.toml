@@ -22,6 +22,9 @@ mime = "0.3.16"
 thiserror = "1.0.30"
 anyhow = "1.0.52"
 tracing = "0.1.29"
+indexmap = "1.8.0"
+type-map = "0.5.0"
+dynamic = "0.2.1"
 
 [dev-dependencies]
 claim = "0.5.0"
