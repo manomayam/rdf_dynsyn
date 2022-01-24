@@ -134,6 +134,21 @@ mod tests {
         assert_ok!(&DYNSYN_TRIPLE_PARSER_FACTORY.try_new_parser::<BoxTerm>(syntax_, None, None));
     }
 
+    fn check_graph_parse_isomorphism<'b, B, P1, P2>(p1: &P1, p2: &P2, qs: &'b str)
+    where
+        P1: TripleParser<B>,
+        P2: TripleParser<B>,
+        &'b str: IntoParsable<Target = B>,
+    {
+        let mut g1 = FastGraph::new();
+        p1.parse_str(qs).add_to_graph(&mut g1).unwrap();
+
+        let mut g2 = FastGraph::new();
+        p2.parse_str(qs).add_to_graph(&mut g2).unwrap();
+
+        assert!(isomorphic_graphs(&g1, &g2).unwrap());
+    }
+
     fn check_dataset_parse_isomorphism<'b, B, P1, P2, T>(
         p1: &P1,
         p2: &P2,
@@ -155,25 +170,63 @@ mod tests {
         assert!(isomorphic_graphs(&g1, &g2).unwrap());
     }
 
-    fn check_graph_parse_isomorphism<'b, B, P1, P2>(p1: &P1, p2: &P2, qs: &'b str)
-    where
-        P1: TripleParser<B>,
-        P2: TripleParser<B>,
-        &'b str: IntoParsable<Target = B>,
-    {
-        let mut g1 = FastGraph::new();
-        p1.parse_str(qs).add_to_graph(&mut g1).unwrap();
+    #[test]
+    pub fn correctly_parses_turtle() {
+        Lazy::force(&TRACING);
+        check_graph_parse_isomorphism(
+            &TurtleParser {
+                base: Some(BASE_IRI1.into()),
+            },
+            &DYNSYN_TRIPLE_PARSER_FACTORY
+                .try_new_parser(
+                    syntax::TURTLE,
+                    Some(BASE_IRI1.into()),
+                    None as Option<BoxTerm>,
+                )
+                .unwrap(),
+            GRAPH_STR_TURTLE,
+        );
+    }
 
-        let mut g2 = FastGraph::new();
-        p2.parse_str(qs).add_to_graph(&mut g2).unwrap();
+    #[test]
+    pub fn correctly_parses_ntriples() {
+        Lazy::force(&TRACING);
+        check_graph_parse_isomorphism(
+            &NTriplesParser {},
+            &DYNSYN_TRIPLE_PARSER_FACTORY
+                .try_new_parser(
+                    syntax::N_TRIPLES,
+                    Some(BASE_IRI1.into()),
+                    None as Option<BoxTerm>,
+                )
+                .unwrap(),
+            GRAPH_STR_NTRIPLES,
+        );
+    }
 
-        assert!(isomorphic_graphs(&g1, &g2).unwrap());
+    #[test]
+    pub fn correctly_parses_rdf_xml() {
+        Lazy::force(&TRACING);
+        check_graph_parse_isomorphism(
+            &RdfXmlParser {
+                base: Some(BASE_IRI1.into()),
+            },
+            &DYNSYN_TRIPLE_PARSER_FACTORY
+                .try_new_parser(
+                    syntax::RDF_XML,
+                    Some(BASE_IRI1.into()),
+                    None as Option<BoxTerm>,
+                )
+                .unwrap(),
+            GRAPH_STR_RDF_XML,
+        );
     }
 
     #[test_case(Some(G1_IRI))]
     #[test_case(Some(G2_IRI))]
     #[test_case(None)]
     pub fn correctly_parses_nquads(quad_source_virtual_graph_iri: Option<&str>) {
+        Lazy::force(&TRACING);
         let quad_source_virtual_graph_iri = quad_source_virtual_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
         check_dataset_parse_isomorphism(
@@ -194,6 +247,7 @@ mod tests {
     #[test_case(Some(G2_IRI))]
     #[test_case(None)]
     pub fn correctly_parses_trig(quad_source_virtual_graph_iri: Option<&str>) {
+        Lazy::force(&TRACING);
         let quad_source_virtual_graph_iri = quad_source_virtual_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
         check_dataset_parse_isomorphism(
@@ -209,55 +263,6 @@ mod tests {
                 .unwrap(),
             DATASET_STR_TRIG,
             quad_source_virtual_graph_iri.as_ref(),
-        );
-    }
-
-    #[test]
-    pub fn correctly_parses_turtle() {
-        check_graph_parse_isomorphism(
-            &TurtleParser {
-                base: Some(BASE_IRI1.into()),
-            },
-            &DYNSYN_TRIPLE_PARSER_FACTORY
-                .try_new_parser(
-                    syntax::TURTLE,
-                    Some(BASE_IRI1.into()),
-                    None as Option<BoxTerm>,
-                )
-                .unwrap(),
-            GRAPH_STR_TURTLE,
-        );
-    }
-
-    #[test]
-    pub fn correctly_parses_ntriples() {
-        check_graph_parse_isomorphism(
-            &NTriplesParser {},
-            &DYNSYN_TRIPLE_PARSER_FACTORY
-                .try_new_parser(
-                    syntax::N_TRIPLES,
-                    Some(BASE_IRI1.into()),
-                    None as Option<BoxTerm>,
-                )
-                .unwrap(),
-            GRAPH_STR_NTRIPLES,
-        );
-    }
-
-    #[test]
-    pub fn correctly_parses_rdf_xml() {
-        check_graph_parse_isomorphism(
-            &RdfXmlParser {
-                base: Some(BASE_IRI1.into()),
-            },
-            &DYNSYN_TRIPLE_PARSER_FACTORY
-                .try_new_parser(
-                    syntax::RDF_XML,
-                    Some(BASE_IRI1.into()),
-                    None as Option<BoxTerm>,
-                )
-                .unwrap(),
-            GRAPH_STR_RDF_XML,
         );
     }
 }

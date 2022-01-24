@@ -180,6 +180,7 @@ mod tests {
 
     #[test]
     pub fn correctly_parses_nquads() {
+        Lazy::force(&TRACING);
         check_dataset_parse_isomorphism(
             &NQuadsParser {},
             &DYNSYN_QUAD_PARSER_FACTORY
@@ -195,6 +196,7 @@ mod tests {
 
     #[test]
     pub fn correctly_parses_trig() {
+        Lazy::force(&TRACING);
         check_dataset_parse_isomorphism(
             &TriGParser {
                 base: Some(BASE_IRI1.into()),
@@ -214,6 +216,7 @@ mod tests {
     #[test_case(Some(G2_IRI))]
     #[test_case(None)]
     pub fn correctly_parses_turtle(triple_source_graph_iri: Option<&str>) {
+        Lazy::force(&TRACING);
         let triple_source_graph_iri = triple_source_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
         check_graph_parse_isomorphism(
@@ -236,6 +239,7 @@ mod tests {
     #[test_case(Some(G2_IRI))]
     #[test_case(None)]
     pub fn correctly_parses_ntriples(triple_source_graph_iri: Option<&str>) {
+        Lazy::force(&TRACING);
         let triple_source_graph_iri = triple_source_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
         check_graph_parse_isomorphism(
@@ -256,6 +260,7 @@ mod tests {
     #[test_case(Some(G2_IRI))]
     #[test_case(None)]
     pub fn correctly_parses_rdf_xml(triple_source_graph_iri: Option<&str>) {
+        Lazy::force(&TRACING);
         let triple_source_graph_iri = triple_source_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
         check_graph_parse_isomorphism(

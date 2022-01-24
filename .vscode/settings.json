@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "bnode",
         "bufread",
         "Copiable",
         "downcasted",
@@ -20,7 +21,9 @@
         "RDFA",
         "RDFXML",
         "repr",
+        "roundtrips",
         "serializers",
+        "Stringifier",
         "thiserror",
         "typemap",
         "upcasted",
