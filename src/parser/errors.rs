@@ -5,6 +5,7 @@ use sophia_api::triple::stream::{StreamError, StreamResult};
 use super::_inner::errors::InnerParseError;
 use crate::syntax::Syntax;
 
+/// An error indicating, given syntax is not known/supported in given context
 #[derive(Debug, thiserror::Error)]
 #[error("Un supported syntax: {0}")]
 pub struct UnKnownSyntaxError(pub Syntax);
@@ -26,12 +27,12 @@ impl From<RdfXmlError> for DynSynParseError {
     }
 }
 
-pub type SomeStreamError<SinkErr> = StreamError<DynSynParseError, SinkErr>;
+pub type DynSynStreamError<SinkErr> = StreamError<DynSynParseError, SinkErr>;
 
-/// This function adapts StreamError by marshalling it's SourceError variant from known types to [`ParseError` ]type
+/// This function adapts StreamError by marshalling it's SourceError variant from known types to [`DynSynParseError` ]type
 pub fn adapt_quads_stream_error<SourceErr, SinkErr>(
     e: StreamError<SourceErr, SinkErr>,
-) -> SomeStreamError<SinkErr>
+) -> DynSynStreamError<SinkErr>
 where
     SourceErr: Into<DynSynParseError> + std::error::Error,
     SinkErr: std::error::Error,

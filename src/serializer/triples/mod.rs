@@ -15,6 +15,11 @@ use crate::{
 
 use super::_inner::InnerTripleSerializer;
 
+/// A [`TripleSerializer`], that can be instantiated at run time against any of supported rdf-syntaxes. We can get it's tuned instance from [`DynSynTripleSerializerFactory::try_new_serializer`] factory method.
+///
+/// It can currently serialize triple-sources/graphs into documents in any of concrete_syntaxes: [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML). Other syntaxes that can represent quads are not supported. We can just get virtual quad-source from a graph serialize as quads in such case.
+///
+/// For each supported serialization syntax, it also supports corresponding formatting options that sophia supports.
 #[derive(Debug)]
 pub struct DynSynTripleSerializer<W: io::Write> {
     inner_serializer: InnerTripleSerializer<W>,
@@ -64,11 +69,13 @@ impl<W: io::Write> TripleSerializer for DynSynTripleSerializer<W> {
     }
 }
 
+/// A factory to instantiate [`DynSynTripleSerializer`].
 pub struct DynSynTripleSerializerFactory {
     serializer_config_map: TypeMap,
 }
 
 impl DynSynTripleSerializerFactory {
+    /// Instantiate a factory. It takes a `serializer_config_map`, a [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
     pub fn new(serializer_config_map: TypeMap) -> Self {
         Self {
             serializer_config_map,
@@ -82,6 +89,10 @@ impl DynSynTripleSerializerFactory {
             .unwrap_or(Default::default())
     }
 
+    /// Try to create new [`DynSynTripleSerializer`] instance, for given `syntax_`, `write`,
+    ///
+    /// # Errors
+    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_serializer<W: io::Write>(
         &self,
         syntax_: Syntax,
@@ -104,6 +115,10 @@ impl DynSynTripleSerializerFactory {
         }
     }
 
+    /// Try to create new [`DynSynTripleSerializer`] instance, that can be stringified after serialization, for given `syntax_`.
+    ///
+    /// # Errors
+    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_stringifier(
         &self,
         syntax_: Syntax,

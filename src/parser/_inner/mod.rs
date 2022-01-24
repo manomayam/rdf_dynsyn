@@ -53,7 +53,7 @@ impl From<RdfXmlParser> for InnerParser {
 
 impl InnerParser {
     /// Try to create a sum-parser for given syntax.
-    /// 
+    ///
     /// #Errors
     /// throws [1UnKnownSyntaxError] if syntax is unknown/un-supported
     pub fn try_new(syntax_: Syntax, base_iri: Option<String>) -> Result<Self, UnKnownSyntaxError> {

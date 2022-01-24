@@ -13,13 +13,18 @@ use super::{_inner::InnerParser, errors::UnKnownSyntaxError};
 
 pub mod source;
 
+/// A [`TripleParser`], that can be instantiated at run time against any of supported rdf-syntaxes. We can get it's tuned instance from [`DynSynTripleParserFactory::try_new_parser`] factory method.
+///
+/// It can currently parse triples from documents in any of concrete_syntaxes: [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML), [`n-quads`](syntax::N_QUADS), [`trig`](syntax::TRIG). For docs in any of these syntaxes, this parser will stream quads through [`DynSynTripleSource`] instance.
+///
+/// For syntaxes that encodes quads instead of triples, like [`trig`](syntax::TRIG), [`n-quads`](syntax::N_QUADS), etc.. This parser can be configured with preferred graph_name term, to stream adapted triples from quads with specified graph_name. In that case, remaining underlying quads with different graph_name term will be ignored
 #[derive(Debug)]
 pub struct DynSynTripleParser<T>
 where
     T: TTerm + CopyTerm + Clone,
 {
     inner_parser: InnerParser,
-    quad_source_virtual_graph_iri: Option<T>,
+    quad_source_adapted_graph_iri: Option<T>,
 }
 
 impl<T> DynSynTripleParser<T>
@@ -29,12 +34,12 @@ where
     pub fn try_new(
         syntax_: Syntax,
         base_iri: Option<String>,
-        quad_source_virtual_graph_iri: Option<T>,
+        quad_source_adapted_graph_iri: Option<T>,
     ) -> Result<Self, UnKnownSyntaxError> {
         let inner_parser = InnerParser::try_new(syntax_, base_iri)?;
         Ok(Self {
             inner_parser,
-            quad_source_virtual_graph_iri,
+            quad_source_adapted_graph_iri,
         })
     }
 }
@@ -47,7 +52,7 @@ where
     type Source = DynSynTripleSource<T, R>;
 
     fn parse(&self, data: R) -> Self::Source {
-        let tsg_iri = self.quad_source_virtual_graph_iri.clone();
+        let tsg_iri = self.quad_source_adapted_graph_iri.clone();
         // TODO may be abstract over literal repetition
         match &self.inner_parser {
             InnerParser::NQuads(p) => DynSynTripleSource::new_for(p.parse(data).into(), tsg_iri),
@@ -59,6 +64,7 @@ where
     }
 }
 
+/// A factory to instantiate [`DynSynTripleParser`].
 pub struct DynSynTripleParserFactory {}
 
 impl DynSynTripleParserFactory {
@@ -66,16 +72,20 @@ impl DynSynTripleParserFactory {
         Self {}
     }
 
+    /// Try to create new [`DynSynTripleParser`] instance, for given `syntax_`, `base_iri`, and  `quad_source_adapted_graph_iri`.
+    ///
+    /// # Errors
+    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_parser<T>(
         &self,
         syntax_: Syntax,
         base_iri: Option<String>,
-        quad_source_virtual_graph_iri: Option<T>,
+        quad_source_adapted_graph_iri: Option<T>,
     ) -> Result<DynSynTripleParser<T>, UnKnownSyntaxError>
     where
         T: TTerm + CopyTerm + Clone,
     {
-        DynSynTripleParser::try_new(syntax_, base_iri, quad_source_virtual_graph_iri)
+        DynSynTripleParser::try_new(syntax_, base_iri, quad_source_adapted_graph_iri)
     }
 }
 

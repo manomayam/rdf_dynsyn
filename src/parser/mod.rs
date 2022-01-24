@@ -4,7 +4,7 @@ pub mod quads;
 pub mod triples;
 
 #[cfg(test)]
-pub mod test_data {
+mod test_data {
     //! these data snippets are copied from sophia tests
 
     pub static DATASET_STR_NQUADS: &str = r#"

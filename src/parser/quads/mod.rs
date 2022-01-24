@@ -17,7 +17,7 @@ pub mod source;
 ///
 /// It can currently parse quads from documents in any of concrete_syntaxes: [`n-quads`](syntax::N_QUADS), [`trig`](syntax::TRIG), [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML). For docs in any of these syntaxes, this parser will stream quads through [`DynSynQuadSource`] instance.
 ///
-/// For syntaxes that doesn't support quads, like [`trig`](syntax::TRIG), [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML), etc.. This parser can be configured with preferred graph_iri term for quads that are adapted from underlying triples.
+/// For syntaxes that doesn't support quads, like [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML), etc.. This parser can be configured with preferred graph_name term for quads that are adapted from underlying triples.
 #[derive(Debug)]
 pub struct DynSynQuadParser<T>
 where
@@ -73,7 +73,7 @@ impl DynSynQuadParserFactory {
     }
 
     /// Try to create new [`DynSynQuadParser`] instance, for given `syntax_`, `base_iri`, and  `triple_source_adapted_graph_iri`.
-    /// 
+    ///
     /// # Errors
     /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_parser<T>(

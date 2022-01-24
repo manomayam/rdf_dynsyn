@@ -14,6 +14,11 @@ use crate::{
 
 use super::_inner::InnerQuadSerializer;
 
+/// A [`QuadSerializer`], that can be instantiated at run time against any of supported rdf-syntaxes. We can get it's tuned instance from [`DynSynQuadSerializerFactory::try_new_serializer`] factory method.
+///
+/// It can currently serialize quad-sources/datasets into documents in any of concrete_syntaxes: [`n-quads`](syntax::N_QUADS), [`trig`](syntax::TRIG). Other syntaxes that cannot represent quads are not supported
+///
+/// For each supported serialization syntax, it also supports corresponding formatting options that sophia supports.
 #[derive(Debug)]
 pub struct DynSynQuadSerializer<W: io::Write> {
     inner_serializer: InnerQuadSerializer<W>, // NOTE can be a trait object. serializers seems amenable to be trait objects unlike parsers and sources
@@ -58,11 +63,13 @@ impl Stringifier for DynSynQuadSerializer<Vec<u8>> {
     }
 }
 
+/// A factory to instantiate [`DynSynQuadSerializer`].
 pub struct DynSynQuadSerializerFactory {
     serializer_config_map: TypeMap,
 }
 
 impl DynSynQuadSerializerFactory {
+    /// Instantiate a factory. It takes a `serializer_config_map`, a [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
     pub fn new(serializer_config_map: TypeMap) -> Self {
         Self {
             serializer_config_map,
@@ -76,6 +83,10 @@ impl DynSynQuadSerializerFactory {
             .unwrap_or(Default::default())
     }
 
+    /// Try to create new [`DynSynQuadSerializer`] instance, for given `syntax_`, `write`,
+    ///
+    /// # Errors
+    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_serializer<W: io::Write>(
         &self,
         syntax_: Syntax,
@@ -92,6 +103,10 @@ impl DynSynQuadSerializerFactory {
         }
     }
 
+    /// Try to create new [`DynSynQuadSerializer`] instance, that can be stringified after serialization, for given `syntax_`.
+    ///
+    /// # Errors
+    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_stringifier(
         &self,
         syntax_: Syntax,

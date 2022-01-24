@@ -5,8 +5,7 @@ use sophia_turtle::serializer::{
 };
 use sophia_xml::serializer::RdfXmlSerializer;
 
-pub mod errors;
-
+/// This is a sum-type that wraps around different quad-serializers from sophia.
 pub(crate) enum InnerQuadSerializer<W: io::Write> {
     NQuads(NqSerializer<W>),
     Trig(TrigSerializer<W>),
@@ -21,6 +20,7 @@ impl<W: io::Write> Debug for InnerQuadSerializer<W> {
     }
 }
 
+/// This is a sum-type that wraps around different triple-serializers from sophia.
 pub(crate) enum InnerTripleSerializer<W: io::Write> {
     NTriples(NtSerializer<W>),
     Turtle(TurtleSerializer<W>),

@@ -36,7 +36,7 @@ pub struct DynSynQuadSource<T: CopyTerm + TTerm, R: BufRead> {
 impl<T: CopyTerm + TTerm + Clone, R: BufRead> DynSynQuadSource<T, R> {
     /// Call `f` for at least one adapted-quad (if any) that is adapted from underlying rio quad source.
     ///
-    /// Return false if there are no more quads can be adapted from underlying source.
+    /// Return false if no more quads can be adapted from underlying source.
     ///
     /// If underlying fallible quad-source returns a parse error, then that error will be wrapped in enum [`DynSynParseError`] as an appropriate variant.
     fn try_for_some_quad_adapted_from_rio_quad_source<Parser, PErr, SinkErr, F>(
@@ -61,7 +61,7 @@ impl<T: CopyTerm + TTerm + Clone, R: BufRead> DynSynQuadSource<T, R> {
 
     /// Call `f` for at least one adapted-quad (if any) that is adapted from underlying rio triple source.
     ///
-    /// Return false if there are no more quads can be adapted from underlying source.
+    /// Return false if no more quads can be adapted from underlying source.
     ///
     /// If underlying fallible triple-source returns a parse error, then that error will be wrapped in enum [`DynSynParseError`] as an appropriate variant.
     ///
