@@ -11,6 +11,7 @@ pub mod source;
 
 pub mod errors;
 
+#[derive(Debug)]
 pub enum InnerParser {
     NQuads(NQuadsParser),
     TriG(TriGParser),

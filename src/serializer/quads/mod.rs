@@ -5,7 +5,7 @@ use sophia_turtle::serializer::{
     nq::{NqConfig, NqSerializer},
     trig::{TrigConfig, TrigSerializer},
 };
-use type_map::TypeMap;
+use type_map::concurrent::TypeMap;
 
 use crate::{
     parser::errors::UnKnownSyntaxError,
@@ -80,5 +80,34 @@ impl SomeHowQuadSerializerFactory {
             ))),
             _ => Err(UnKnownSyntaxError(syntax_)),
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use claim::{assert_ok, assert_err};
+    use sophia_term::BoxTerm;
+    use test_case::test_case;
+    use once_cell::sync::Lazy;
+    use type_map::concurrent::TypeMap;
+
+    use crate::{syntax::{Syntax, self, HTML_RDFA, XHTML_RDFA, OWL2_XML, N3}, tests::TRACING};
+
+    use super::SomeHowQuadSerializerFactory;
+
+    static factory: Lazy<SomeHowQuadSerializerFactory> = Lazy::new(|| {
+        SomeHowQuadSerializerFactory::new(TypeMap::new())
+    });
+
+    #[test_case(syntax::JSON_LD)]
+    #[test_case(syntax::HTML_RDFA)]
+    #[test_case(syntax::N_TRIPLES)]
+    #[test_case(syntax::N3)]
+    #[test_case(syntax::OWL2_XML)]
+    #[test_case(syntax::TURTLE)]
+    #[test_case(syntax::XHTML_RDFA)]
+    pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: Syntax) {
+        // assert_err!(&factory.try_new_serializer::<BoxTerm>(syntax_, None, None));
     }
 }
