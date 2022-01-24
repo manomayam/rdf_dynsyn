@@ -1,6 +1,8 @@
-use std::{io, fmt::Debug};
+use std::{fmt::Debug, io};
 
-use sophia_turtle::serializer::{nq::NqSerializer, nt::NtSerializer, turtle::TurtleSerializer, trig::TrigSerializer};
+use sophia_turtle::serializer::{
+    nq::NqSerializer, nt::NtSerializer, trig::TrigSerializer, turtle::TurtleSerializer,
+};
 use sophia_xml::serializer::RdfXmlSerializer;
 
 pub mod errors;

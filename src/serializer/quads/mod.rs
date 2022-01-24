@@ -131,6 +131,7 @@ mod tests {
 
     static SERIALIZER_FACTORY: Lazy<DynSynQuadSerializerFactory> =
         Lazy::new(|| DynSynQuadSerializerFactory::new(TypeMap::new()));
+
     static SERIALIZER_FACTORY_WITH_PRETTY_CONFIG: Lazy<DynSynQuadSerializerFactory> =
         Lazy::new(|| {
             let mut config_map = TypeMap::new();
@@ -141,6 +142,7 @@ mod tests {
                 serializer_config_map: config_map,
             }
         });
+
     /// As DynSyn parsers can be non-cyclically tested, we can use them here.
     static QUAD_PARSER_FACTORY: Lazy<DynSynQuadParserFactory> =
         Lazy::new(|| DynSynQuadParserFactory::new());
@@ -179,6 +181,7 @@ mod tests {
     #[test_case(syntax::N_QUADS, TESTS_NQUADS[0], false)]
     #[test_case(syntax::N_QUADS, TESTS_NQUADS[0], true)]
     pub fn correctly_roundtrips_for_syntax(syntax_: Syntax, rdf_doc: &str, pretty: bool) {
+        Lazy::force(&TRACING);
         let parser = QUAD_PARSER_FACTORY
             .try_new_parser(syntax_, None, None as Option<BoxTerm>)
             .unwrap();

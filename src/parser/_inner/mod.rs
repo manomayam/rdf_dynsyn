@@ -11,6 +11,7 @@ pub mod source;
 
 pub mod errors;
 
+/// This is a sum-type that wraps around different rdf-syntax-parsers from sophia.
 #[derive(Debug)]
 pub enum InnerParser {
     NQuads(NQuadsParser),
@@ -51,10 +52,11 @@ impl From<RdfXmlParser> for InnerParser {
 }
 
 impl InnerParser {
-    pub fn try_new(
-        syntax_: Syntax,
-        base_iri: Option<String>,
-    ) -> Result<Self, UnKnownSyntaxError> {
+    /// Try to create a sum-parser for given syntax.
+    /// 
+    /// #Errors
+    /// throws [1UnKnownSyntaxError] if syntax is unknown/un-supported
+    pub fn try_new(syntax_: Syntax, base_iri: Option<String>) -> Result<Self, UnKnownSyntaxError> {
         match syntax_ {
             syntax::N_QUADS => Ok(NQuadsParser {}.into()),
             syntax::N_TRIPLES => Ok(NTriplesParser {}.into()),

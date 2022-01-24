@@ -143,6 +143,7 @@ mod tests {
 
     static SERIALIZER_FACTORY: Lazy<DynSynTripleSerializerFactory> =
         Lazy::new(|| DynSynTripleSerializerFactory::new(TypeMap::new()));
+
     static SERIALIZER_FACTORY_WITH_PRETTY_CONFIG: Lazy<DynSynTripleSerializerFactory> =
         Lazy::new(|| {
             let mut config_map = TypeMap::new();
@@ -196,6 +197,7 @@ mod tests {
     #[test_case(syntax::RDF_XML, TESTS_RDF_XML[0], false)]
     #[test_case(syntax::RDF_XML, TESTS_RDF_XML[0], true)]
     pub fn correctly_roundtrips_for_syntax(syntax_: Syntax, rdf_doc: &str, pretty: bool) {
+        Lazy::force(&TRACING);
         let parser = TRIPLE_PARSER_FACTORY
             .try_new_parser(syntax_, None, None as Option<BoxTerm>)
             .unwrap();
