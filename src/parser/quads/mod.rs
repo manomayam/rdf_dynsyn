@@ -7,14 +7,14 @@ use sophia_api::{
 
 use crate::syntax::Syntax;
 
-use self::source::SomeHowQuadSource;
+use self::source::DynSynQuadSource;
 
 use super::{_inner::InnerParser, errors::UnKnownSyntaxError};
 
 pub mod source;
 
 #[derive(Debug)]
-pub struct SomeHowQuadParser<T>
+pub struct DynSynQuadParser<T>
 where
     T: TTerm + CopyTerm + Clone,
 {
@@ -22,7 +22,7 @@ where
     triple_source_graph_iri: Option<T>,
 }
 
-impl<T> SomeHowQuadParser<T>
+impl<T> DynSynQuadParser<T>
 where
     T: TTerm + CopyTerm + Clone,
 {
@@ -39,29 +39,29 @@ where
     }
 }
 
-impl<T, R> QuadParser<R> for SomeHowQuadParser<T>
+impl<T, R> QuadParser<R> for DynSynQuadParser<T>
 where
     T: TTerm + CopyTerm + Clone,
     R: BufRead,
 {
-    type Source = SomeHowQuadSource<T, R>;
+    type Source = DynSynQuadSource<T, R>;
 
     fn parse(&self, data: R) -> Self::Source {
         let tsg_iri = self.triple_source_graph_iri.clone();
         // TODO may have to abstract over literal repetition
         match &self.inner_parser {
-            InnerParser::NQuads(p) => SomeHowQuadSource::new_for(p.parse(data).into(), tsg_iri),
-            InnerParser::TriG(p) => SomeHowQuadSource::new_for(p.parse(data).into(), tsg_iri),
-            InnerParser::NTriples(p) => SomeHowQuadSource::new_for(p.parse(data).into(), tsg_iri),
-            InnerParser::Turtle(p) => SomeHowQuadSource::new_for(p.parse(data).into(), tsg_iri),
-            InnerParser::RdfXml(p) => SomeHowQuadSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::NQuads(p) => DynSynQuadSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::TriG(p) => DynSynQuadSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::NTriples(p) => DynSynQuadSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::Turtle(p) => DynSynQuadSource::new_for(p.parse(data).into(), tsg_iri),
+            InnerParser::RdfXml(p) => DynSynQuadSource::new_for(p.parse(data).into(), tsg_iri),
         }
     }
 }
 
-pub struct SomeHowQuadParserFactory {}
+pub struct DynSynQuadParserFactory {}
 
-impl SomeHowQuadParserFactory {
+impl DynSynQuadParserFactory {
     pub fn new() -> Self {
         Self {}
     }
@@ -71,20 +71,24 @@ impl SomeHowQuadParserFactory {
         syntax_: Syntax,
         base_iri: Option<String>,
         triple_source_graph_iri: Option<T>,
-    ) -> Result<SomeHowQuadParser<T>, UnKnownSyntaxError>
+    ) -> Result<DynSynQuadParser<T>, UnKnownSyntaxError>
     where
         T: TTerm + CopyTerm + Clone,
     {
-        SomeHowQuadParser::try_new(syntax_, base_iri, triple_source_graph_iri)
+        DynSynQuadParser::try_new(syntax_, base_iri, triple_source_graph_iri)
     }
 }
+
+// ---------------------------------------------------------------------------------
+//                                      tests
+// ---------------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
     use claim::{assert_err, assert_ok};
     use once_cell::sync::Lazy;
     use sophia_api::{
-        dataset::Dataset,
+        dataset::{isomorphic_datasets, Dataset},
         graph::Graph,
         parser::{IntoParsable, QuadParser, TripleParser},
         quad::{stream::QuadSource, Quad},
@@ -104,11 +108,11 @@ mod tests {
         tests::TRACING,
     };
 
-    use super::SomeHowQuadParserFactory;
+    use super::DynSynQuadParserFactory;
     use crate::parser::test_data::*;
 
-    static SOMEHOW_QUAD_PARSER_FACTORY: Lazy<SomeHowQuadParserFactory> =
-        Lazy::new(|| SomeHowQuadParserFactory::new());
+    static DYNSYN_QUAD_PARSER_FACTORY: Lazy<DynSynQuadParserFactory> =
+        Lazy::new(|| DynSynQuadParserFactory::new());
 
     #[test_case(syntax::JSON_LD)]
     #[test_case(syntax::HTML_RDFA)]
@@ -117,7 +121,7 @@ mod tests {
     #[test_case(syntax::XHTML_RDFA)]
     pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: Syntax) {
         Lazy::force(&TRACING);
-        assert_err!(&SOMEHOW_QUAD_PARSER_FACTORY.try_new_parser::<BoxTerm>(syntax_, None, None));
+        assert_err!(&DYNSYN_QUAD_PARSER_FACTORY.try_new_parser::<BoxTerm>(syntax_, None, None));
     }
 
     #[test_case(syntax::N_QUADS)]
@@ -127,29 +131,25 @@ mod tests {
     #[test_case(syntax::TURTLE)]
     pub fn creating_parser_for_supported_syntax_will_succeed(syntax_: Syntax) {
         Lazy::force(&TRACING);
-        assert_ok!(&SOMEHOW_QUAD_PARSER_FACTORY.try_new_parser::<BoxTerm>(syntax_, None, None));
+        assert_ok!(&DYNSYN_QUAD_PARSER_FACTORY.try_new_parser::<BoxTerm>(syntax_, None, None));
     }
 
-    fn check_dataset_parse_entailment<'b, B, P1, P2>(p1: &P1, p2: &P2, qs: &'b str)
+    fn check_dataset_parse_isomorphism<'b, B, P1, P2>(p1: &P1, p2: &P2, qs: &'b str)
     where
         P1: QuadParser<B>,
         P2: QuadParser<B>,
         &'b str: IntoParsable<Target = B>,
     {
         let mut d1 = FastDataset::new();
-        let c1 = p1.parse_str(qs).add_to_dataset(&mut d1).unwrap();
+        p1.parse_str(qs).add_to_dataset(&mut d1).unwrap();
 
         let mut d2 = FastDataset::new();
-        let c2 = p2.parse_str(qs).add_to_dataset(&mut d2).unwrap();
+        p2.parse_str(qs).add_to_dataset(&mut d2).unwrap();
 
-        assert_eq!(c1, c2);
-        for q in d1.quads() {
-            let q = q.unwrap();
-            assert!(d2.contains(q.s(), q.p(), q.o(), q.g()).unwrap());
-        }
+        assert!(isomorphic_datasets(&d1, &d2).unwrap());
     }
 
-    fn check_graph_parse_entailment<'b, B, P1, P2, T>(
+    fn check_graph_parse_isomorphism<'b, B, P1, P2, T>(
         p1: &P1,
         p2: &P2,
         qs: &'b str,
@@ -180,9 +180,9 @@ mod tests {
 
     #[test]
     pub fn correctly_parses_nquads() {
-        check_dataset_parse_entailment(
+        check_dataset_parse_isomorphism(
             &NQuadsParser {},
-            &SOMEHOW_QUAD_PARSER_FACTORY
+            &DYNSYN_QUAD_PARSER_FACTORY
                 .try_new_parser(
                     syntax::N_QUADS,
                     Some(BASE_IRI1.into()),
@@ -195,11 +195,11 @@ mod tests {
 
     #[test]
     pub fn correctly_parses_trig() {
-        check_dataset_parse_entailment(
+        check_dataset_parse_isomorphism(
             &TriGParser {
                 base: Some(BASE_IRI1.into()),
             },
-            &SOMEHOW_QUAD_PARSER_FACTORY
+            &DYNSYN_QUAD_PARSER_FACTORY
                 .try_new_parser(
                     syntax::TRIG,
                     Some(BASE_IRI1.into()),
@@ -216,11 +216,11 @@ mod tests {
     pub fn correctly_parses_turtle(triple_source_graph_iri: Option<&str>) {
         let triple_source_graph_iri = triple_source_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
-        check_graph_parse_entailment(
+        check_graph_parse_isomorphism(
             &TurtleParser {
                 base: Some(BASE_IRI1.into()),
             },
-            &SOMEHOW_QUAD_PARSER_FACTORY
+            &DYNSYN_QUAD_PARSER_FACTORY
                 .try_new_parser(
                     syntax::TURTLE,
                     Some(BASE_IRI1.into()),
@@ -238,9 +238,9 @@ mod tests {
     pub fn correctly_parses_ntriples(triple_source_graph_iri: Option<&str>) {
         let triple_source_graph_iri = triple_source_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
-        check_graph_parse_entailment(
+        check_graph_parse_isomorphism(
             &NTriplesParser {},
-            &SOMEHOW_QUAD_PARSER_FACTORY
+            &DYNSYN_QUAD_PARSER_FACTORY
                 .try_new_parser(
                     syntax::N_TRIPLES,
                     Some(BASE_IRI1.into()),
@@ -258,11 +258,11 @@ mod tests {
     pub fn correctly_parses_rdf_xml(triple_source_graph_iri: Option<&str>) {
         let triple_source_graph_iri = triple_source_graph_iri
             .and_then(|v| Some(BoxTerm::Iri(Iri::new(Box::from(v)).unwrap())));
-        check_graph_parse_entailment(
+        check_graph_parse_isomorphism(
             &RdfXmlParser {
                 base: Some(BASE_IRI1.into()),
             },
-            &SOMEHOW_QUAD_PARSER_FACTORY
+            &DYNSYN_QUAD_PARSER_FACTORY
                 .try_new_parser(
                     syntax::RDF_XML,
                     Some(BASE_IRI1.into()),

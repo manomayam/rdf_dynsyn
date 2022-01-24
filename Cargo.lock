@@ -190,7 +190,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rdf_somehow"
+name = "rdf_dynsyn"
 version = "0.1.0"
 dependencies = [
  "anyhow",

@@ -5,7 +5,8 @@ pub mod triples;
 
 #[cfg(test)]
 pub mod test_data {
-    // Is copied from sophia tests
+    //! these data snippets are copied from sophia tests
+
     pub static DATASET_STR_NQUADS: &str = r#"
         <http://localhost/ex#me> <http://example.org/ns/knows> _:b1.
         _:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/ns/Person> <tag:g1>.

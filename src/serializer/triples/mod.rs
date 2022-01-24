@@ -15,17 +15,17 @@ use crate::{
 
 use super::_inner::InnerTripleSerializer;
 
-pub struct SomeHowTripleSerializer<W: io::Write> {
+pub struct DynSynTripleSerializer<W: io::Write> {
     inner_serializer: InnerTripleSerializer<W>,
 }
 
-impl<W: io::Write> SomeHowTripleSerializer<W> {
+impl<W: io::Write> DynSynTripleSerializer<W> {
     pub(crate) fn new(inner_serializer: InnerTripleSerializer<W>) -> Self {
         Self { inner_serializer }
     }
 }
 
-impl<W: io::Write> TripleSerializer for SomeHowTripleSerializer<W> {
+impl<W: io::Write> TripleSerializer for DynSynTripleSerializer<W> {
     type Error = io::Error;
 
     fn serialize_triples<TS>(
@@ -53,11 +53,11 @@ impl<W: io::Write> TripleSerializer for SomeHowTripleSerializer<W> {
     }
 }
 
-pub struct SomeHowTripleSerializerFactory {
+pub struct DynSynTripleSerializerFactory {
     serializer_config_map: TypeMap,
 }
 
-impl SomeHowTripleSerializerFactory {
+impl DynSynTripleSerializerFactory {
     pub fn new(serializer_config_map: TypeMap) -> Self {
         Self {
             serializer_config_map,
@@ -75,21 +75,25 @@ impl SomeHowTripleSerializerFactory {
         &self,
         syntax_: Syntax,
         write: W,
-    ) -> Result<SomeHowTripleSerializer<W>, UnKnownSyntaxError> {
+    ) -> Result<DynSynTripleSerializer<W>, UnKnownSyntaxError> {
         match syntax_ {
-            syntax::N_TRIPLES => Ok(SomeHowTripleSerializer::new(
+            syntax::N_TRIPLES => Ok(DynSynTripleSerializer::new(
                 InnerTripleSerializer::NTriples(NtSerializer::new_with_config(
                     write,
                     self.get_config::<NtConfig>(),
                 )),
             )),
-            syntax::TURTLE => Ok(SomeHowTripleSerializer::new(InnerTripleSerializer::Turtle(
+            syntax::TURTLE => Ok(DynSynTripleSerializer::new(InnerTripleSerializer::Turtle(
                 TurtleSerializer::new_with_config(write, self.get_config::<TurtleConfig>()),
             ))),
-            syntax::RDF_XML => Ok(SomeHowTripleSerializer::new(InnerTripleSerializer::RdfXml(
+            syntax::RDF_XML => Ok(DynSynTripleSerializer::new(InnerTripleSerializer::RdfXml(
                 RdfXmlSerializer::new_with_config(write, self.get_config::<RdfXmlConfig>()),
             ))),
             _ => Err(UnKnownSyntaxError(syntax_)),
         }
     }
 }
+
+// ---------------------------------------------------------------------------------
+//                                      tests
+// ---------------------------------------------------------------------------------

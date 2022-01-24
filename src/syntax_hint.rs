@@ -85,6 +85,10 @@ impl<'a> TryInto<Syntax> for SyntaxHint<'a> {
 
 pub type SyntaxHintResolutionResult<'a> = Result<Correspondent<Syntax>, UnknownSyntaxHintError<'a>>;
 
+// ---------------------------------------------------------------------------------
+//                                      tests
+// ---------------------------------------------------------------------------------
+
 #[cfg(test)]
 mod tests {
     use claim::{assert_err, assert_ok};

@@ -18,24 +18,24 @@ use sophia_rio::parser::StrictRioSource;
 
 use crate::parser::{
     _inner::source::InnerStatementSource,
-    errors::{adapt_stream_result, SomeHowParseError},
+    errors::{adapt_stream_result, DynSynParseError},
 };
 
 pub type TupleQuad<T> = ([T; 3], Option<T>);
 
-pub struct SomeHowQuadSource<T: CopyTerm + TTerm, R: BufRead> {
+pub struct DynSynQuadSource<T: CopyTerm + TTerm, R: BufRead> {
     inner_source: InnerStatementSource<R>,
     triple_source_graph_iri: Option<T>,
 }
 
-impl<T: CopyTerm + TTerm + Clone, R: BufRead> SomeHowQuadSource<T, R> {
+impl<T: CopyTerm + TTerm + Clone, R: BufRead> DynSynQuadSource<T, R> {
     fn map_from_rio_quad_source<Parser, PErr, SinkErr, F>(
         qs: &mut StrictRioSource<Parser, PErr>,
         mut f: F,
-    ) -> StreamResult<bool, SomeHowParseError, SinkErr>
+    ) -> StreamResult<bool, DynSynParseError, SinkErr>
     where
         Parser: QuadsParser<Error = PErr>,
-        PErr: Error + 'static + Into<SomeHowParseError>,
+        PErr: Error + 'static + Into<DynSynParseError>,
         SinkErr: Error,
         F: FnMut(StreamedQuad<ByValue<TupleQuad<T>>>) -> Result<(), SinkErr>,
     {
@@ -52,10 +52,10 @@ impl<T: CopyTerm + TTerm + Clone, R: BufRead> SomeHowQuadSource<T, R> {
         ts: &mut StrictRioSource<Parser, PErr>,
         mut f: F,
         graph_iri: &Option<T>,
-    ) -> StreamResult<bool, SomeHowParseError, SinkErr>
+    ) -> StreamResult<bool, DynSynParseError, SinkErr>
     where
         Parser: TriplesParser<Error = PErr>,
-        PErr: Error + 'static + Into<SomeHowParseError>,
+        PErr: Error + 'static + Into<DynSynParseError>,
         SinkErr: Error,
         F: FnMut(StreamedQuad<ByValue<TupleQuad<T>>>) -> Result<(), SinkErr>,
     {
@@ -79,12 +79,12 @@ impl<T: CopyTerm + TTerm + Clone, R: BufRead> SomeHowQuadSource<T, R> {
     }
 }
 
-impl<T, R> quad::stream::QuadSource for SomeHowQuadSource<T, R>
+impl<T, R> quad::stream::QuadSource for DynSynQuadSource<T, R>
 where
     T: CopyTerm + TTerm + Clone,
     R: BufRead,
 {
-    type Error = SomeHowParseError;
+    type Error = DynSynParseError;
 
     type Quad = ByValue<TupleQuad<T>>;
 

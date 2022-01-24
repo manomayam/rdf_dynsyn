@@ -15,25 +15,25 @@ use sophia_rio::parser::StrictRioSource;
 
 use crate::parser::{
     _inner::source::InnerStatementSource,
-    errors::{adapt_stream_result, SomeHowParseError},
+    errors::{adapt_stream_result, DynSynParseError},
 };
 
 pub type SliceTriple<T> = [T; 3];
 
-pub struct SomeHowTripleSource<T: CopyTerm + TTerm, R: BufRead> {
+pub struct DynSynTripleSource<T: CopyTerm + TTerm, R: BufRead> {
     inner_source: InnerStatementSource<R>,
     quad_source_virtual_default_graph_iri: Option<T>,
 }
 
-impl<T: CopyTerm + TTerm + Clone, R: BufRead> SomeHowTripleSource<T, R> {
+impl<T: CopyTerm + TTerm + Clone, R: BufRead> DynSynTripleSource<T, R> {
     fn map_from_rio_quad_source<Parser, PErr, SinkErr, F>(
         qs: &mut StrictRioSource<Parser, PErr>,
         mut f: F,
         virtual_default_graph_iri: &Option<T>,
-    ) -> StreamResult<bool, SomeHowParseError, SinkErr>
+    ) -> StreamResult<bool, DynSynParseError, SinkErr>
     where
         Parser: QuadsParser<Error = PErr>,
-        PErr: Error + 'static + Into<SomeHowParseError>,
+        PErr: Error + 'static + Into<DynSynParseError>,
         SinkErr: Error,
         F: FnMut(StreamedTriple<ByValue<SliceTriple<T>>>) -> Result<(), SinkErr>,
     {
@@ -54,10 +54,10 @@ impl<T: CopyTerm + TTerm + Clone, R: BufRead> SomeHowTripleSource<T, R> {
     fn map_from_rio_triple_source<Parser, PErr, SinkErr, F>(
         ts: &mut StrictRioSource<Parser, PErr>,
         mut f: F,
-    ) -> StreamResult<bool, SomeHowParseError, SinkErr>
+    ) -> StreamResult<bool, DynSynParseError, SinkErr>
     where
         Parser: TriplesParser<Error = PErr>,
-        PErr: Error + 'static + Into<SomeHowParseError>,
+        PErr: Error + 'static + Into<DynSynParseError>,
         SinkErr: Error,
         F: FnMut(StreamedTriple<ByValue<SliceTriple<T>>>) -> Result<(), SinkErr>,
     {
@@ -78,12 +78,12 @@ impl<T: CopyTerm + TTerm + Clone, R: BufRead> SomeHowTripleSource<T, R> {
     }
 }
 
-impl<T, R> triple::stream::TripleSource for SomeHowTripleSource<T, R>
+impl<T, R> triple::stream::TripleSource for DynSynTripleSource<T, R>
 where
     T: CopyTerm + TTerm + Clone,
     R: BufRead,
 {
-    type Error = SomeHowParseError;
+    type Error = DynSynParseError;
 
     type Triple = ByValue<SliceTriple<T>>;
 

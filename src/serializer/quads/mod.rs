@@ -14,17 +14,17 @@ use crate::{
 
 use super::_inner::InnerQuadSerializer;
 
-pub struct SomeHowQuadSerializer<W: io::Write> {
+pub struct DynSynQuadSerializer<W: io::Write> {
     inner_serializer: InnerQuadSerializer<W>,
 }
 
-impl<W: io::Write> SomeHowQuadSerializer<W> {
+impl<W: io::Write> DynSynQuadSerializer<W> {
     pub(crate) fn new(inner_serializer: InnerQuadSerializer<W>) -> Self {
         Self { inner_serializer }
     }
 }
 
-impl<W: io::Write> QuadSerializer for SomeHowQuadSerializer<W> {
+impl<W: io::Write> QuadSerializer for DynSynQuadSerializer<W> {
     type Error = io::Error;
 
     fn serialize_quads<QS>(
@@ -48,11 +48,11 @@ impl<W: io::Write> QuadSerializer for SomeHowQuadSerializer<W> {
     }
 }
 
-pub struct SomeHowQuadSerializerFactory {
+pub struct DynSynQuadSerializerFactory {
     serializer_config_map: TypeMap,
 }
 
-impl SomeHowQuadSerializerFactory {
+impl DynSynQuadSerializerFactory {
     pub fn new(serializer_config_map: TypeMap) -> Self {
         Self {
             serializer_config_map,
@@ -70,12 +70,12 @@ impl SomeHowQuadSerializerFactory {
         &self,
         syntax_: Syntax,
         write: W,
-    ) -> Result<SomeHowQuadSerializer<W>, UnKnownSyntaxError> {
+    ) -> Result<DynSynQuadSerializer<W>, UnKnownSyntaxError> {
         match syntax_ {
-            syntax::N_QUADS => Ok(SomeHowQuadSerializer::new(InnerQuadSerializer::NQuads(
+            syntax::N_QUADS => Ok(DynSynQuadSerializer::new(InnerQuadSerializer::NQuads(
                 NqSerializer::new_with_config(write, self.get_config::<NqConfig>()),
             ))),
-            syntax::TRIG => Ok(SomeHowQuadSerializer::new(InnerQuadSerializer::Trig(
+            syntax::TRIG => Ok(DynSynQuadSerializer::new(InnerQuadSerializer::Trig(
                 TrigSerializer::new_with_config(write, self.get_config::<TrigConfig>()),
             ))),
             _ => Err(UnKnownSyntaxError(syntax_)),
@@ -83,6 +83,9 @@ impl SomeHowQuadSerializerFactory {
     }
 }
 
+// ---------------------------------------------------------------------------------
+//                                      tests
+// ---------------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -94,10 +97,10 @@ mod tests {
 
     use crate::{syntax::{Syntax, self, HTML_RDFA, XHTML_RDFA, OWL2_XML, N3}, tests::TRACING};
 
-    use super::SomeHowQuadSerializerFactory;
+    use super::DynSynQuadSerializerFactory;
 
-    static factory: Lazy<SomeHowQuadSerializerFactory> = Lazy::new(|| {
-        SomeHowQuadSerializerFactory::new(TypeMap::new())
+    static factory: Lazy<DynSynQuadSerializerFactory> = Lazy::new(|| {
+        DynSynQuadSerializerFactory::new(TypeMap::new())
     });
 
     #[test_case(syntax::JSON_LD)]
