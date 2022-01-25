@@ -5,7 +5,7 @@ use sophia_api::{
     term::{CopyTerm, TTerm},
 };
 
-use crate::syntax::Syntax;
+use crate::syntax::RdfSyntax;
 
 use self::source::DynSynTripleSource;
 
@@ -13,11 +13,55 @@ use super::{_inner::InnerParser, errors::UnKnownSyntaxError};
 
 pub mod source;
 
-/// A [`TripleParser`], that can be instantiated at run time against any of supported rdf-syntaxes. We can get it's tuned instance from [`DynSynTripleParserFactory::try_new_parser`] factory method.
+/// This parser implements [`sophia_api::parser::TripleParser`] trait, and can be instantiated at runtime against any of supported syntaxes using [`DynSynTripleParserFactory] factory.. It is generic over type of terms in triples it produces.
 ///
 /// It can currently parse triples from documents in any of concrete_syntaxes: [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML), [`n-quads`](syntax::N_QUADS), [`trig`](syntax::TRIG). For docs in any of these syntaxes, this parser will stream quads through [`DynSynTripleSource`] instance.
 ///
 /// For syntaxes that encodes quads instead of triples, like [`trig`](syntax::TRIG), [`n-quads`](syntax::N_QUADS), etc.. This parser can be configured with preferred graph_name term, to stream adapted triples from quads with specified graph_name. In that case, remaining underlying quads with different graph_name term will be ignored
+///
+/// Example:
+///
+/// ```
+/// use rdf_dynsyn::{parser::triples::*, syntax};
+///
+/// use sophia_api::{graph::Graph, triple::stream::TripleSource, parser::TripleParser};
+/// use sophia_inmem::graph::FastGraph;
+/// use sophia_term::{matcher::ANY, BoxTerm, StaticTerm};
+///
+/// # pub fn try_main() -> Result<(), Box<dyn std::error::Error>> {
+/// let parser_factory = DynSynTripleParserFactory::new();
+///
+/// let turtle_doc = r#"
+///     @prefix : <http://example.org/ns/> .
+///     <#me> :knows [ a :Person ; :name "Alice" ].
+/// "#;
+/// let doc_base_iri = "http://localhost/ex";
+///
+/// // A `DynSynQuadParser<BoxTerm>` instance, configured for trig syntax.
+/// let parser = parser_factory.try_new_parser::<BoxTerm>(
+///     syntax::TURTLE,
+///     Some(doc_base_iri.into()),
+///     None,
+/// )?;
+/// let mut graph = FastGraph::new();
+/// let c = parser.parse_str(turtle_doc).add_to_graph(&mut graph)?;
+///
+/// assert_eq!(c, 3);
+/// assert!(graph
+///     .triples_matching(
+///         &StaticTerm::new_iri("http://localhost/ex#me")?,
+///         &StaticTerm::new_iri("http://example.org/ns/knows")?,
+///         &ANY,
+///     )
+///     .next()
+///     .is_some());
+///
+/// #     Ok(())
+/// # }
+/// # fn main() {try_main().unwrap();}
+///```
+/// 
+
 #[derive(Debug)]
 pub struct DynSynTripleParser<T>
 where
@@ -32,7 +76,7 @@ where
     T: TTerm + CopyTerm + Clone,
 {
     pub fn try_new(
-        syntax_: Syntax,
+        syntax_: RdfSyntax,
         base_iri: Option<String>,
         quad_source_adapted_graph_iri: Option<T>,
     ) -> Result<Self, UnKnownSyntaxError> {
@@ -78,7 +122,7 @@ impl DynSynTripleParserFactory {
     /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_parser<T>(
         &self,
-        syntax_: Syntax,
+        syntax_: RdfSyntax,
         base_iri: Option<String>,
         quad_source_adapted_graph_iri: Option<T>,
     ) -> Result<DynSynTripleParser<T>, UnKnownSyntaxError>
@@ -89,9 +133,9 @@ impl DynSynTripleParserFactory {
     }
 }
 
-// ---------------------------------------------------------------------------------
-//                                      tests
-// ---------------------------------------------------------------------------------
+/// ---------------------------------------------------------------------------------
+///                                      tests
+/// ---------------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -114,7 +158,7 @@ mod tests {
     use test_case::test_case;
 
     use crate::{
-        syntax::{self, Syntax},
+        syntax::{self, RdfSyntax},
         tests::TRACING,
     };
 
@@ -129,7 +173,7 @@ mod tests {
     #[test_case(syntax::N3)]
     #[test_case(syntax::OWL2_XML)]
     #[test_case(syntax::XHTML_RDFA)]
-    pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: Syntax) {
+    pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: RdfSyntax) {
         Lazy::force(&TRACING);
         assert_err!(&DYNSYN_TRIPLE_PARSER_FACTORY.try_new_parser::<BoxTerm>(syntax_, None, None));
     }
@@ -139,7 +183,7 @@ mod tests {
     #[test_case(syntax::RDF_XML)]
     #[test_case(syntax::TRIG)]
     #[test_case(syntax::TURTLE)]
-    pub fn creating_parser_for_supported_syntax_will_succeed(syntax_: Syntax) {
+    pub fn creating_parser_for_supported_syntax_will_succeed(syntax_: RdfSyntax) {
         Lazy::force(&TRACING);
         assert_ok!(&DYNSYN_TRIPLE_PARSER_FACTORY.try_new_parser::<BoxTerm>(syntax_, None, None));
     }

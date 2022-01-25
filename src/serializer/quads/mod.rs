@@ -9,7 +9,7 @@ use type_map::concurrent::TypeMap;
 
 use crate::{
     parser::errors::UnKnownSyntaxError,
-    syntax::{self, Syntax},
+    syntax::{self, RdfSyntax},
 };
 
 use super::_inner::InnerQuadSerializer;
@@ -19,6 +19,66 @@ use super::_inner::InnerQuadSerializer;
 /// It can currently serialize quad-sources/datasets into documents in any of concrete_syntaxes: [`n-quads`](syntax::N_QUADS), [`trig`](syntax::TRIG). Other syntaxes that cannot represent quads are not supported
 ///
 /// For each supported serialization syntax, it also supports corresponding formatting options that sophia supports.
+///
+/// Example:
+///
+/// ```
+/// use rdf_dynsyn::syntax;
+///
+/// use sophia_api::{
+/// ns::rdf,
+/// serializer::{QuadSerializer, Stringifier},
+/// };
+/// use sophia_term::{literal::convert::AsLiteral, StaticTerm};
+/// use sophia_turtle::serializer::trig::TrigConfig;
+/// use type_map::concurrent::TypeMap;
+///
+/// use rdf_dynsyn::serializer::quads::DynSynQuadSerializerFactory;
+///
+/// # pub fn try_main() -> Result<(), Box<dyn std::error::Error>> {
+/// // A type-map that holds *optional* configurations for different serialization syntaxes.
+/// let mut serializer_config_map = TypeMap::new();
+/// // add optional configurations to config_map
+/// serializer_config_map.insert::<TrigConfig>(TrigConfig::new().with_pretty(true));
+///
+/// let serializer_factory = DynSynQuadSerializerFactory::new(Some(serializer_config_map));
+///
+/// // create a dataset to serialize
+/// let me = StaticTerm::new_iri("http://example.org/#me").unwrap();
+/// let dataset = vec![
+///     (
+///         [
+///             me,
+///             rdf::type_.into(),
+///             StaticTerm::new_iri("http://schema.org/Person").unwrap(),
+///         ],
+///         None,
+///     ),
+///     (
+///         [
+///             me,
+///             StaticTerm::new_iri("http://schema.org/name").unwrap(),
+///             "My-name".as_literal().into(),
+///         ],
+///         Some(StaticTerm::new_iri("http://example.org/").unwrap()),
+///     ),
+/// ];
+///
+/// // instead of stringifier, you can directly write to any `io::Write` sync. see sophia QuadSerializer docs for more usage.
+/// let mut trig_serializer = serializer_factory.try_new_stringifier(syntax::TRIG)?;
+/// trig_serializer.serialize_dataset(&dataset)?;
+/// // get to string
+/// let trig_doc = trig_serializer.as_str();
+///
+/// let mut nq_serializer = serializer_factory.try_new_stringifier(syntax::N_QUADS)?;
+/// nq_serializer.serialize_dataset(&dataset)?;
+/// let nq_doc = nq_serializer.as_str();
+/// # Ok(())
+/// # }
+/// # fn main() {try_main().unwrap();}
+///```
+///
+
 #[derive(Debug)]
 pub struct DynSynQuadSerializer<W: io::Write> {
     inner_serializer: InnerQuadSerializer<W>, // NOTE can be a trait object. serializers seems amenable to be trait objects unlike parsers and sources
@@ -69,8 +129,13 @@ pub struct DynSynQuadSerializerFactory {
 }
 
 impl DynSynQuadSerializerFactory {
-    /// Instantiate a factory. It takes a `serializer_config_map`, a [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
-    pub fn new(serializer_config_map: TypeMap) -> Self {
+    /// Instantiate a factory. It takes a `serializer_config_map`, an optional [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
+    pub fn new(serializer_config_map: Option<TypeMap>) -> Self {
+        let serializer_config_map = if let Some(v) = serializer_config_map {
+            v
+        } else {
+            TypeMap::new()
+        };
         Self {
             serializer_config_map,
         }
@@ -89,7 +154,7 @@ impl DynSynQuadSerializerFactory {
     /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_serializer<W: io::Write>(
         &self,
-        syntax_: Syntax,
+        syntax_: RdfSyntax,
         write: W,
     ) -> Result<DynSynQuadSerializer<W>, UnKnownSyntaxError> {
         match syntax_ {
@@ -109,15 +174,15 @@ impl DynSynQuadSerializerFactory {
     /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_stringifier(
         &self,
-        syntax_: Syntax,
+        syntax_: RdfSyntax,
     ) -> Result<DynSynQuadSerializer<Vec<u8>>, UnKnownSyntaxError> {
         self.try_new_serializer(syntax_, Vec::new())
     }
 }
 
-// ---------------------------------------------------------------------------------
-//                                      tests
-// ---------------------------------------------------------------------------------
+/// ---------------------------------------------------------------------------------
+///                                  tests
+/// ---------------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -138,14 +203,14 @@ mod tests {
     use crate::{
         parser::quads::DynSynQuadParserFactory,
         serializer::test_data::{TESTS_NQUADS, TESTS_TRIG},
-        syntax::{self, Syntax},
+        syntax::{self, RdfSyntax},
         tests::TRACING,
     };
 
     use super::DynSynQuadSerializerFactory;
 
     static SERIALIZER_FACTORY: Lazy<DynSynQuadSerializerFactory> =
-        Lazy::new(|| DynSynQuadSerializerFactory::new(TypeMap::new()));
+        Lazy::new(|| DynSynQuadSerializerFactory::new(None));
 
     static SERIALIZER_FACTORY_WITH_PRETTY_CONFIG: Lazy<DynSynQuadSerializerFactory> =
         Lazy::new(|| {
@@ -153,9 +218,7 @@ mod tests {
             config_map.insert::<TrigConfig>(TrigConfig::new().with_pretty(true));
             config_map.insert::<NqConfig>(NqConfig::default());
 
-            DynSynQuadSerializerFactory {
-                serializer_config_map: config_map,
-            }
+            DynSynQuadSerializerFactory::new(Some(config_map))
         });
 
     /// As DynSyn parsers can be non-cyclically tested, we can use them here.
@@ -167,16 +230,17 @@ mod tests {
     #[test_case(syntax::N_TRIPLES)]
     #[test_case(syntax::N3)]
     #[test_case(syntax::OWL2_XML)]
-    #[test_case(syntax::TRIG)]
+    #[test_case(syntax::RDF_XML)]
+    #[test_case(syntax::TURTLE)]
     #[test_case(syntax::XHTML_RDFA)]
-    pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: Syntax) {
+    pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: RdfSyntax) {
         Lazy::force(&TRACING);
         assert_err!(SERIALIZER_FACTORY.try_new_stringifier(syntax_));
     }
 
     #[test_case(syntax::N_QUADS)]
     #[test_case(syntax::TRIG)]
-    pub fn creating_parser_for_supported_syntax_will_succeed(syntax_: Syntax) {
+    pub fn creating_parser_for_supported_syntax_will_succeed(syntax_: RdfSyntax) {
         Lazy::force(&TRACING);
         assert_ok!(SERIALIZER_FACTORY.try_new_stringifier(syntax_));
     }
@@ -195,7 +259,7 @@ mod tests {
     #[test_case(syntax::TRIG, TESTS_TRIG[5], true)]
     #[test_case(syntax::N_QUADS, TESTS_NQUADS[0], false)]
     #[test_case(syntax::N_QUADS, TESTS_NQUADS[0], true)]
-    pub fn correctly_roundtrips_for_syntax(syntax_: Syntax, rdf_doc: &str, pretty: bool) {
+    pub fn correctly_roundtrips_for_syntax(syntax_: RdfSyntax, rdf_doc: &str, pretty: bool) {
         Lazy::force(&TRACING);
         let parser = QUAD_PARSER_FACTORY
             .try_new_parser(syntax_, None, None as Option<BoxTerm>)

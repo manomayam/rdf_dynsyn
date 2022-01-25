@@ -10,7 +10,7 @@ use type_map::concurrent::TypeMap;
 
 use crate::{
     parser::errors::UnKnownSyntaxError,
-    syntax::{self, Syntax},
+    syntax::{self, RdfSyntax},
 };
 
 use super::_inner::InnerTripleSerializer;
@@ -20,6 +20,63 @@ use super::_inner::InnerTripleSerializer;
 /// It can currently serialize triple-sources/graphs into documents in any of concrete_syntaxes: [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML). Other syntaxes that can represent quads are not supported. We can just get virtual quad-source from a graph serialize as quads in such case.
 ///
 /// For each supported serialization syntax, it also supports corresponding formatting options that sophia supports.
+///
+/// Example:
+///
+/// ```
+/// use rdf_dynsyn::syntax;
+///
+/// use sophia_api::{
+///     ns::rdf,
+///     serializer::{TripleSerializer, Stringifier},
+/// };
+/// use sophia_term::{literal::convert::AsLiteral, StaticTerm};
+/// use sophia_turtle::serializer::turtle::TurtleConfig;
+/// use type_map::concurrent::TypeMap;
+///
+/// use rdf_dynsyn::serializer::triples::DynSynTripleSerializerFactory;
+///
+/// # pub fn try_main() -> Result<(), Box<dyn std::error::Error>> {
+/// // A type-map that holds *optional* configurations for different serialization syntaxes.
+/// let mut serializer_config_map = TypeMap::new();
+/// // add optional configurations to config_map
+/// serializer_config_map.insert::<TurtleConfig>(TurtleConfig::new().with_pretty(true));
+///
+/// let serializer_factory = DynSynTripleSerializerFactory::new(Some(serializer_config_map));
+///
+/// // create a dataset to serialize
+/// let me = StaticTerm::new_iri("http://example.org/#me").unwrap();
+/// let graph = vec![
+///     (
+///         [
+///             me,
+///             rdf::type_.into(),
+///             StaticTerm::new_iri("http://schema.org/Person").unwrap(),
+///         ]
+///     ),
+///     (
+///         [
+///             me,
+///             StaticTerm::new_iri("http://schema.org/name").unwrap(),
+///             "My-name".as_literal().into(),
+///         ]
+///     ),
+/// ];
+///
+/// // instead of stringifier, you can directly write to any `io::Write` sync. see sophia QuadSerializer docs for more usage.
+/// let mut turtle_serializer = serializer_factory.try_new_stringifier(syntax::TURTLE)?;
+/// turtle_serializer.serialize_graph(&graph)?;
+/// // get to string
+/// let turtle_doc = turtle_serializer.as_str();
+///
+/// let mut rdf_xml_serializer = serializer_factory.try_new_stringifier(syntax::RDF_XML)?;
+/// rdf_xml_serializer.serialize_graph(&graph)?;
+/// let rdf_xml_doc = rdf_xml_serializer.as_str();
+/// # Ok(())
+/// # }
+/// # fn main() {try_main().unwrap();}
+///```
+///
 #[derive(Debug)]
 pub struct DynSynTripleSerializer<W: io::Write> {
     inner_serializer: InnerTripleSerializer<W>,
@@ -75,8 +132,13 @@ pub struct DynSynTripleSerializerFactory {
 }
 
 impl DynSynTripleSerializerFactory {
-    /// Instantiate a factory. It takes a `serializer_config_map`, a [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
-    pub fn new(serializer_config_map: TypeMap) -> Self {
+    /// Instantiate a factory. It takes a `serializer_config_map`, an optional [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
+    pub fn new(serializer_config_map: Option<TypeMap>) -> Self {
+        let serializer_config_map = if let Some(v) = serializer_config_map {
+            v
+        } else {
+            TypeMap::new()
+        };
         Self {
             serializer_config_map,
         }
@@ -95,7 +157,7 @@ impl DynSynTripleSerializerFactory {
     /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_serializer<W: io::Write>(
         &self,
-        syntax_: Syntax,
+        syntax_: RdfSyntax,
         write: W,
     ) -> Result<DynSynTripleSerializer<W>, UnKnownSyntaxError> {
         match syntax_ {
@@ -121,15 +183,15 @@ impl DynSynTripleSerializerFactory {
     /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_stringifier(
         &self,
-        syntax_: Syntax,
+        syntax_: RdfSyntax,
     ) -> Result<DynSynTripleSerializer<Vec<u8>>, UnKnownSyntaxError> {
         self.try_new_serializer(syntax_, Vec::new())
     }
 }
 
-// ---------------------------------------------------------------------------------
-//                                      tests
-// ---------------------------------------------------------------------------------
+/// ---------------------------------------------------------------------------------
+///                                      tests
+/// ---------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
     use claim::{assert_err, assert_ok};
@@ -150,14 +212,14 @@ mod tests {
     use crate::{
         parser::triples::DynSynTripleParserFactory,
         serializer::test_data::{TESTS_NTRIPLES, TESTS_RDF_XML, TESTS_TURTLE},
-        syntax::{self, Syntax},
+        syntax::{self, RdfSyntax},
         tests::TRACING,
     };
 
     use super::DynSynTripleSerializerFactory;
 
     static SERIALIZER_FACTORY: Lazy<DynSynTripleSerializerFactory> =
-        Lazy::new(|| DynSynTripleSerializerFactory::new(TypeMap::new()));
+        Lazy::new(|| DynSynTripleSerializerFactory::new(None));
 
     static SERIALIZER_FACTORY_WITH_PRETTY_CONFIG: Lazy<DynSynTripleSerializerFactory> =
         Lazy::new(|| {
@@ -166,9 +228,7 @@ mod tests {
             config_map.insert::<NtConfig>(NtConfig::default());
             config_map.insert::<RdfXmlConfig>(RdfXmlConfig::default());
 
-            DynSynTripleSerializerFactory {
-                serializer_config_map: config_map,
-            }
+            DynSynTripleSerializerFactory::new(Some(config_map))
         });
 
     /// As DynSyn parsers can be non-cyclically tested, we can use them here.
@@ -182,7 +242,7 @@ mod tests {
     #[test_case(syntax::OWL2_XML)]
     #[test_case(syntax::TRIG)]
     #[test_case(syntax::XHTML_RDFA)]
-    pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: Syntax) {
+    pub fn creating_parser_for_un_supported_syntax_will_error(syntax_: RdfSyntax) {
         Lazy::force(&TRACING);
         assert_err!(SERIALIZER_FACTORY.try_new_serializer(syntax_, Vec::new()));
     }
@@ -190,7 +250,7 @@ mod tests {
     #[test_case(syntax::N_TRIPLES)]
     #[test_case(syntax::RDF_XML)]
     #[test_case(syntax::TURTLE)]
-    pub fn creating_parser_for_supported_syntax_will_succeed(syntax_: Syntax) {
+    pub fn creating_parser_for_supported_syntax_will_succeed(syntax_: RdfSyntax) {
         Lazy::force(&TRACING);
         assert_ok!(SERIALIZER_FACTORY.try_new_stringifier(syntax_));
     }
@@ -211,7 +271,7 @@ mod tests {
     #[test_case(syntax::N_TRIPLES, TESTS_NTRIPLES[0], true)]
     #[test_case(syntax::RDF_XML, TESTS_RDF_XML[0], false)]
     #[test_case(syntax::RDF_XML, TESTS_RDF_XML[0], true)]
-    pub fn correctly_roundtrips_for_syntax(syntax_: Syntax, rdf_doc: &str, pretty: bool) {
+    pub fn correctly_roundtrips_for_syntax(syntax_: RdfSyntax, rdf_doc: &str, pretty: bool) {
         Lazy::force(&TRACING);
         let parser = TRIPLE_PARSER_FACTORY
             .try_new_parser(syntax_, None, None as Option<BoxTerm>)

@@ -3,7 +3,7 @@ use sophia_turtle::parser::{
 };
 use sophia_xml::parser::RdfXmlParser;
 
-use crate::syntax::{self, Syntax};
+use crate::syntax::{self, RdfSyntax};
 
 use super::errors::UnKnownSyntaxError;
 
@@ -55,8 +55,11 @@ impl InnerParser {
     /// Try to create a sum-parser for given syntax.
     ///
     /// #Errors
-    /// throws [1UnKnownSyntaxError] if syntax is unknown/un-supported
-    pub fn try_new(syntax_: Syntax, base_iri: Option<String>) -> Result<Self, UnKnownSyntaxError> {
+    /// throws [`UnKnownSyntaxError`] if syntax is unknown/un-supported
+    pub fn try_new(
+        syntax_: RdfSyntax,
+        base_iri: Option<String>,
+    ) -> Result<Self, UnKnownSyntaxError> {
         match syntax_ {
             syntax::N_QUADS => Ok(NQuadsParser {}.into()),
             syntax::N_TRIPLES => Ok(NTriplesParser {}.into()),

@@ -3,12 +3,12 @@ use rio_xml::RdfXmlError;
 use sophia_api::triple::stream::{StreamError, StreamResult};
 
 use super::_inner::errors::InnerParseError;
-use crate::syntax::Syntax;
+use crate::syntax::RdfSyntax;
 
 /// An error indicating, given syntax is not known/supported in given context
 #[derive(Debug, thiserror::Error)]
 #[error("Un supported syntax: {0}")]
-pub struct UnKnownSyntaxError(pub Syntax);
+pub struct UnKnownSyntaxError(pub RdfSyntax);
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
