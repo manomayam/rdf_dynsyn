@@ -93,3 +93,8 @@ pub const XHTML_RDFA: RdfSyntax = RdfSyntax("https://www.w3.org/TR/xhtml-rdfa/")
 ///
 ///  Spec: [https://www.w3.org/TR/html-rdfa/](https://www.w3.org/TR/html-rdfa/)
 pub const HTML_RDFA: RdfSyntax = RdfSyntax("https://www.w3.org/TR/html-rdfa/");
+
+/// An error indicating, given syntax is not known/supported in given context
+#[derive(Debug, thiserror::Error)]
+#[error("Un supported syntax: {0}")]
+pub struct UnKnownSyntaxError(pub RdfSyntax);

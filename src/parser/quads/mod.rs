@@ -5,19 +5,19 @@ use sophia_api::{
     term::{CopyTerm, TTerm},
 };
 
-use crate::syntax::RdfSyntax;
+use crate::syntax::{RdfSyntax, UnKnownSyntaxError};
 
 use self::source::DynSynQuadSource;
 
-use super::{_inner::InnerParser, errors::UnKnownSyntaxError};
+use super::_inner::InnerParser;
 
 pub mod source;
 
 /// This parser implements [`sophia_api::parser::QuadParser`] trait, and can be instantiated at runtime against any of supported syntaxes using [`DynSynQuadParserFactory`] factory. It is generic over type of terms in quads it produces.
 ///
-/// It can currently parse quads from documents in any of concrete_syntaxes: [`n-quads`](syntax::N_QUADS), [`trig`](syntax::TRIG), [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML). For docs in any of these syntaxes, this parser will stream quads through [`DynSynQuadSource`] instance.
+/// It can currently parse quads from documents in any of concrete_syntaxes: [`n-quads`](crate::syntax::N_QUADS), [`trig`](crate::syntax::TRIG), [`turtle`](crate::syntax::TURTLE), [`n-triples`](crate::syntax::N_TRIPLES), [rdf-xml](crate::syntax::RDF_XML). For docs in any of these syntaxes, this parser will stream quads through [`DynSynQuadSource`] instance.
 ///
-/// For syntaxes that doesn't support quads, like [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML), etc.. This parser can be configured with preferred graph_name term for quads that are adapted from underlying triples.
+/// For syntaxes that doesn't support quads, like [`turtle`](crate::syntax::TURTLE), [`n-triples`](crate::syntax::N_TRIPLES), [rdf-xml](crate::syntax::RDF_XML), etc.. This parser can be configured with preferred graph_name term for quads that are adapted from underlying triples.
 ///
 /// Example:
 ///
@@ -65,7 +65,7 @@ pub mod source;
 /// # }
 /// # fn main() {try_main().unwrap();}
 ///```
-/// 
+///
 
 #[derive(Debug)]
 pub struct DynSynQuadParser<T>
@@ -124,7 +124,7 @@ impl DynSynQuadParserFactory {
     //// Try to create new [`DynSynQuadParser`] instance, for given `syntax_`, `base_iri`, and  `triple_source_adapted_graph_iri`.
     ////
     //// # Errors
-    //// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
+    //// returns [`UnKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_parser<T>(
         &self,
         syntax_: RdfSyntax,

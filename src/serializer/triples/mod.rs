@@ -9,7 +9,7 @@ use sophia_xml::serializer::{RdfXmlConfig, RdfXmlSerializer};
 use type_map::concurrent::TypeMap;
 
 use crate::{
-    parser::errors::UnKnownSyntaxError,
+    syntax::UnKnownSyntaxError,
     syntax::{self, RdfSyntax},
 };
 
@@ -154,7 +154,7 @@ impl DynSynTripleSerializerFactory {
     /// Try to create new [`DynSynTripleSerializer`] instance, for given `syntax_`, `write`,
     ///
     /// # Errors
-    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
+    /// returns [`UnKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_serializer<W: io::Write>(
         &self,
         syntax_: RdfSyntax,
@@ -180,7 +180,7 @@ impl DynSynTripleSerializerFactory {
     /// Try to create new [`DynSynTripleSerializer`] instance, that can be stringified after serialization, for given `syntax_`.
     ///
     /// # Errors
-    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
+    /// returns [`UnKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_stringifier(
         &self,
         syntax_: RdfSyntax,

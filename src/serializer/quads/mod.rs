@@ -8,7 +8,7 @@ use sophia_turtle::serializer::{
 use type_map::concurrent::TypeMap;
 
 use crate::{
-    parser::errors::UnKnownSyntaxError,
+    syntax::UnKnownSyntaxError,
     syntax::{self, RdfSyntax},
 };
 
@@ -151,7 +151,7 @@ impl DynSynQuadSerializerFactory {
     /// Try to create new [`DynSynQuadSerializer`] instance, for given `syntax_`, `write`,
     ///
     /// # Errors
-    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
+    /// returns [`UnKnownSyntaxError`](crate::syntax::UnKnownSyntaxError) if requested syntax is not known/supported.
     pub fn try_new_serializer<W: io::Write>(
         &self,
         syntax_: RdfSyntax,
@@ -171,7 +171,7 @@ impl DynSynQuadSerializerFactory {
     /// Try to create new [`DynSynQuadSerializer`] instance, that can be stringified after serialization, for given `syntax_`.
     ///
     /// # Errors
-    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
+    /// returns [`UnKnownSyntaxError`](crate::syntax::UnKnownSyntaxError) if requested syntax is not known/supported.
     pub fn try_new_stringifier(
         &self,
         syntax_: RdfSyntax,

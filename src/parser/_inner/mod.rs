@@ -3,9 +3,7 @@ use sophia_turtle::parser::{
 };
 use sophia_xml::parser::RdfXmlParser;
 
-use crate::syntax::{self, RdfSyntax};
-
-use super::errors::UnKnownSyntaxError;
+use crate::syntax::{self, RdfSyntax, UnKnownSyntaxError};
 
 pub mod source;
 

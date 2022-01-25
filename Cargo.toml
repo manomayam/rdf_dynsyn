@@ -2,7 +2,9 @@
 name = "rdf_dynsyn"
 version = "0.1.0"
 edition = "2021"
-description = "A package to serialize/deserialize rdf documents with any supported syntax that can be specified dynamically at runtime, with out concerning oneself on generically resolving parsers/serializers."
+description = "This crate provides sophia-compatible and sophia-based rdf parsers/serializers, that can be instantiated against any of supported syntaxes dynamically at run time."
+keywords = ["rdf", "parse", "serialize", "sophia", "turtle", "nquads"]
+repository = "https://github.com/manomayam/rdf_dynsyn"
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -22,7 +24,6 @@ mime = "0.3.16"
 thiserror = "1.0.30"
 anyhow = "1.0.52"
 tracing = "0.1.29"
-indexmap = "1.8.0"
 type-map = "0.5.0"
 
 [dev-dependencies]

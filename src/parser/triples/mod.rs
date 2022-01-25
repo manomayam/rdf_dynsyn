@@ -5,19 +5,19 @@ use sophia_api::{
     term::{CopyTerm, TTerm},
 };
 
-use crate::syntax::RdfSyntax;
+use crate::syntax::{RdfSyntax, UnKnownSyntaxError};
 
 use self::source::DynSynTripleSource;
 
-use super::{_inner::InnerParser, errors::UnKnownSyntaxError};
+use super::_inner::InnerParser;
 
 pub mod source;
 
 /// This parser implements [`sophia_api::parser::TripleParser`] trait, and can be instantiated at runtime against any of supported syntaxes using [`DynSynTripleParserFactory] factory.. It is generic over type of terms in triples it produces.
 ///
-/// It can currently parse triples from documents in any of concrete_syntaxes: [`turtle`](syntax::TURTLE), [`n-triples`](syntax::N_TRIPLES), [rdf-xml](syntax::RDF_XML), [`n-quads`](syntax::N_QUADS), [`trig`](syntax::TRIG). For docs in any of these syntaxes, this parser will stream quads through [`DynSynTripleSource`] instance.
+/// It can currently parse triples from documents in any of concrete_syntaxes: [`turtle`](crate::syntax::TURTLE), [`n-triples`](crate::syntax::N_TRIPLES), [rdf-xml](crate::syntax::RDF_XML), [`n-quads`](crate::syntax::N_QUADS), [`trig`](crate::syntax::TRIG). For docs in any of these syntaxes, this parser will stream quads through [`DynSynTripleSource`] instance.
 ///
-/// For syntaxes that encodes quads instead of triples, like [`trig`](syntax::TRIG), [`n-quads`](syntax::N_QUADS), etc.. This parser can be configured with preferred graph_name term, to stream adapted triples from quads with specified graph_name. In that case, remaining underlying quads with different graph_name term will be ignored
+/// For syntaxes that encodes quads instead of triples, like [`trig`](crate::syntax::TRIG), [`n-quads`](crate::syntax::N_QUADS), etc.. This parser can be configured with preferred graph_name term, to stream adapted triples from quads with specified graph_name. In that case, remaining underlying quads with different graph_name term will be ignored
 ///
 /// Example:
 ///
@@ -60,7 +60,7 @@ pub mod source;
 /// # }
 /// # fn main() {try_main().unwrap();}
 ///```
-/// 
+///
 
 #[derive(Debug)]
 pub struct DynSynTripleParser<T>
@@ -119,7 +119,7 @@ impl DynSynTripleParserFactory {
     /// Try to create new [`DynSynTripleParser`] instance, for given `syntax_`, `base_iri`, and  `quad_source_adapted_graph_iri`.
     ///
     /// # Errors
-    /// returns [`UnkKnownSyntaxError`] if requested syntax is not known/supported.
+    /// returns [`UnKnownSyntaxError`](crate::syntax::UnKnownSyntaxError) if requested syntax is not known/supported.
     pub fn try_new_parser<T>(
         &self,
         syntax_: RdfSyntax,
