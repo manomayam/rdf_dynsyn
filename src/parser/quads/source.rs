@@ -53,7 +53,7 @@ impl<T: CopyTerm + TTerm + Clone, R: BufRead> DynSynQuadSource<T, R> {
         adapt_stream_result(qs.try_for_some_quad(&mut |q| {
             let tq: TupleQuad<T> = (
                 [q.s().copied(), q.p().copied(), q.o().copied()],
-                q.g().and_then(|gv| Some(gv.copied())),
+                q.g().map(|gv| gv.copied()),
             );
             f(StreamedQuad::by_value(tq))
         }))
@@ -81,7 +81,7 @@ impl<T: CopyTerm + TTerm + Clone, R: BufRead> DynSynQuadSource<T, R> {
         adapt_stream_result(ts.try_for_some_triple(&mut |t| {
             let tq: TupleQuad<T> = (
                 [t.s().copied(), t.p().copied(), t.o().copied()],
-                triple_source_graph_iri.clone().and_then(|gv| Some(gv)),
+                triple_source_graph_iri.clone(),
             );
             f(StreamedQuad::by_value(tq))
         }))

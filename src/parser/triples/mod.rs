@@ -109,6 +109,7 @@ where
 }
 
 /// A factory to instantiate [`DynSynTripleParser`].
+#[derive(Default)]
 pub struct DynSynTripleParserFactory {}
 
 impl DynSynTripleParserFactory {

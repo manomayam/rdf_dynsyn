@@ -147,8 +147,8 @@ impl DynSynTripleSerializerFactory {
     pub fn get_config<T: Clone + Default + 'static>(&self) -> T {
         self.serializer_config_map
             .get::<T>()
-            .and_then(|c| Some(c.clone()))
-            .unwrap_or(Default::default())
+            .cloned()
+            .unwrap_or_default()
     }
 
     /// Try to create new [`DynSynTripleSerializer`] instance, for given `syntax_`, `write`,
