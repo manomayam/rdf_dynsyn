@@ -12,12 +12,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.52"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84450d0b4a8bd1ba4144ce8ce718fbc5d071358b1e5384bace6536b3d1f2d5b3"
-
-[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -135,12 +129,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8e54fb37480ffa01a9af93f991ba229b3091f2e6ac84c8f6df2c509356cc473"
 
 [[package]]
-name = "oxiri"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8a8821a5332e388ab8d6436ab703c5744516c11976e2c08702fbc93fe4b3f51"
-
-[[package]]
 name = "pin-project-lite"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -177,12 +165,10 @@ dependencies = [
 name = "rdf_dynsyn"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "claim",
  "env_logger",
  "mime",
  "once_cell",
- "oxiri 0.2.1",
  "rio_api",
  "rio_turtle",
  "rio_xml",
@@ -234,7 +220,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "896e6e63b744436510f2cd4bdc1d236e3f2a5d0cbbe0468f75cdce45c60172e7"
 dependencies = [
  "oxilangtag",
- "oxiri 0.1.1",
+ "oxiri",
  "rio_api",
 ]
 
@@ -245,7 +231,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2646b30f115ba1e85e5941a6f6a651b245b7b89033a2d92ae0e5646804b388be"
 dependencies = [
  "oxilangtag",
- "oxiri 0.1.1",
+ "oxiri",
  "quick-xml",
  "rio_api",
 ]
@@ -336,7 +322,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0d54ce58c767d9b1ade3d1751dbd0e84302237772e00414c07d03a643c04f00"
 dependencies = [
  "lazy_static",
- "oxiri 0.1.1",
+ "oxiri",
  "regex",
  "rio_api",
  "rio_turtle",
@@ -355,7 +341,7 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a6bc0896a3a47167caf840684c5d9b05ccd2a5c007c7e36eb37a6d5da0ebd50"
 dependencies = [
- "oxiri 0.1.1",
+ "oxiri",
  "rio_xml",
  "sophia_api",
  "sophia_rio",
