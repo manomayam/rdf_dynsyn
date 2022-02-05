@@ -233,7 +233,7 @@ mod tests {
 
     /// As DynSyn parsers can be non-cyclically tested, we can use them here.
     static TRIPLE_PARSER_FACTORY: Lazy<DynSynTripleParserFactory> =
-        Lazy::new(|| DynSynTripleParserFactory::new());
+        Lazy::new(|| DynSynTripleParserFactory::default());
 
     #[test_case(syntax::JSON_LD)]
     #[test_case(syntax::HTML_RDFA)]

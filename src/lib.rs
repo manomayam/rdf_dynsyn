@@ -47,7 +47,7 @@
 //!         Correspondent::<RdfSyntax>::try_from(&Mime::from_str(tgt_doc_media_type)?)?.value;
 //!
 //!     // get parser for source syntax
-//!     let parser_factory = DynSynTripleParserFactory::new();
+//!     let parser_factory = DynSynTripleParserFactory::default();
 //!     let parser = parser_factory.try_new_parser::<BoxTerm>(src_doc_syntax, None, None)?;
 //!
 //!     // parse to a graph

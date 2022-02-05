@@ -4,6 +4,7 @@ use sophia_api::{
     parser::{QuadParser, TripleParser},
     term::{CopyTerm, TTerm},
 };
+use type_map::concurrent::TypeMap;
 
 use crate::syntax::{RdfSyntax, UnKnownSyntaxError};
 
@@ -29,7 +30,7 @@ pub mod source;
 /// use sophia_term::{matcher::ANY, BoxTerm, StaticTerm};
 ///
 /// # pub fn try_main() -> Result<(), Box<dyn std::error::Error>> {
-/// let parser_factory = DynSynQuadParserFactory::new();
+/// let parser_factory = DynSynQuadParserFactory::default();
 ///
 /// let trig_doc = r#"
 ///     @prefix : <http://example.org/ns/> .
@@ -114,18 +115,27 @@ where
 }
 
 /// A factory to instantiate [`DynSynQuadParser`].
-#[derive(Default)]
-pub struct DynSynQuadParserFactory {}
+pub struct DynSynQuadParserFactory {
+    _parser_config_map: TypeMap
+}
 
 impl DynSynQuadParserFactory {
-    pub fn new() -> Self {
-        Self {}
+    /// Instantiate a factory. It takes a `parser_config_map`, an optional [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
+    pub fn new(parser_config_map: Option<TypeMap>) -> Self {
+        let parser_config_map = if let Some(v) = parser_config_map {
+            v
+        } else {
+            TypeMap::new()
+        };
+        Self {
+            _parser_config_map: parser_config_map,
+        }
     }
 
-    //// Try to create new [`DynSynQuadParser`] instance, for given `syntax_`, `base_iri`, and  `triple_source_adapted_graph_iri`.
-    ////
-    //// # Errors
-    //// returns [`UnKnownSyntaxError`] if requested syntax is not known/supported.
+    /// Try to create new [`DynSynQuadParser`] instance, for given `syntax_`, `base_iri`, and  `triple_source_adapted_graph_iri`.
+    ///
+    /// # Errors
+    /// returns [`UnKnownSyntaxError`] if requested syntax is not known/supported.
     pub fn try_new_parser<T>(
         &self,
         syntax_: RdfSyntax,
@@ -137,6 +147,10 @@ impl DynSynQuadParserFactory {
     {
         DynSynQuadParser::try_new(syntax_, base_iri, triple_source_adapted_graph_iri)
     }
+}
+
+impl Default for DynSynQuadParserFactory {
+    fn default() -> Self { Self::new(None) }
 }
 
 // ---------------------------------------------------------------------------------
@@ -172,7 +186,7 @@ mod tests {
     use crate::parser::test_data::*;
 
     static DYNSYN_QUAD_PARSER_FACTORY: Lazy<DynSynQuadParserFactory> =
-        Lazy::new(|| DynSynQuadParserFactory::new());
+        Lazy::new(|| DynSynQuadParserFactory::default());
 
     #[test_case(syntax::JSON_LD)]
     #[test_case(syntax::HTML_RDFA)]

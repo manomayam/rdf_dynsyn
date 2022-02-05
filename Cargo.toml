@@ -1,23 +1,23 @@
 [package]
 name = "rdf_dynsyn"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "This crate provides sophia-compatible and sophia-based rdf parsers/serializers, that can be instantiated against any of supported syntaxes dynamically at run time."
-keywords = ["rdf", "parse", "serialize", "sophia", "turtle", "nquads"]
+keywords = ["rdf", "parse", "serialize", "sophia"]
 repository = "https://github.com/manomayam/rdf_dynsyn"
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sophia_term = "0.7.1"
-sophia_api = "0.7.1"
-sophia_turtle = "0.7.1"
-sophia_rio = "0.7.1"
-sophia_xml = "0.7.1"
-rio_turtle = "=0.6.1"
-rio_api = "=0.6.1"
-rio_xml = "=0.6.1"
+sophia_term = "0.7.2"
+sophia_api = "0.7.2"
+sophia_turtle = "0.7.2"
+sophia_rio = "0.7.2"
+sophia_xml = "0.7.2"
+rio_turtle = "0.6.2"
+rio_api = "0.6.2"
+rio_xml = "0.6.2"
 once_cell = "1.9.0"
 mime = "0.3.16"
 thiserror = "1.0.30"
@@ -29,4 +29,4 @@ claim = "0.5.0"
 env_logger = "0.9.0"
 test-case = "1.2.1"
 tracing = {version = "0.1.29", features=["log"]}
-sophia_inmem = "0.7.1"
+sophia_inmem = "0.7.2"

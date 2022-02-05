@@ -4,6 +4,7 @@ use sophia_api::{
     parser::{QuadParser, TripleParser},
     term::{CopyTerm, TTerm},
 };
+use type_map::concurrent::TypeMap;
 
 use crate::syntax::{RdfSyntax, UnKnownSyntaxError};
 
@@ -29,7 +30,7 @@ pub mod source;
 /// use sophia_term::{matcher::ANY, BoxTerm, StaticTerm};
 ///
 /// # pub fn try_main() -> Result<(), Box<dyn std::error::Error>> {
-/// let parser_factory = DynSynTripleParserFactory::new();
+/// let parser_factory = DynSynTripleParserFactory::default();
 ///
 /// let turtle_doc = r#"
 ///     @prefix : <http://example.org/ns/> .
@@ -109,12 +110,21 @@ where
 }
 
 /// A factory to instantiate [`DynSynTripleParser`].
-#[derive(Default)]
-pub struct DynSynTripleParserFactory {}
+pub struct DynSynTripleParserFactory {
+    _parser_config_map: TypeMap
+}
 
 impl DynSynTripleParserFactory {
-    pub fn new() -> Self {
-        Self {}
+    /// Instantiate a factory. It takes a `parser_config_map`, an optional [`TypeMap`], which can be populated with configuration structures corresponding to supported syntaxes.
+    pub fn new(parser_config_map: Option<TypeMap>) -> Self {
+        let parser_config_map = if let Some(v) = parser_config_map {
+            v
+        } else {
+            TypeMap::new()
+        };
+        Self {
+            _parser_config_map: parser_config_map,
+        }
     }
 
     /// Try to create new [`DynSynTripleParser`] instance, for given `syntax_`, `base_iri`, and  `quad_source_adapted_graph_iri`.
@@ -131,6 +141,12 @@ impl DynSynTripleParserFactory {
         T: TTerm + CopyTerm + Clone,
     {
         DynSynTripleParser::try_new(syntax_, base_iri, quad_source_adapted_graph_iri)
+    }
+}
+
+impl Default for DynSynTripleParserFactory {
+    fn default() -> Self {
+        Self::new(None)
     }
 }
 
@@ -167,7 +183,7 @@ mod tests {
     use crate::parser::test_data::*;
 
     static DYNSYN_TRIPLE_PARSER_FACTORY: Lazy<DynSynTripleParserFactory> =
-        Lazy::new(|| DynSynTripleParserFactory::new());
+        Lazy::new(|| DynSynTripleParserFactory::default());
 
     #[test_case(syntax::JSON_LD)]
     #[test_case(syntax::HTML_RDFA)]
